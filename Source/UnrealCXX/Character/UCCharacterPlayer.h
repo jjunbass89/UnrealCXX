@@ -78,5 +78,10 @@ protected:
 
 	int32 CurrentCombo = 0;
 	FTimerHandle ComboTimerHandle;
-	bool HasNextComboCommand = false;	
+	bool HasNextComboCommand = false;
+
+// Item Section
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USkeletalMeshComponent> Weapon;	
 };

@@ -67,6 +67,14 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 	{
 		ComboActionData = ComboActionDataRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> WeaponMeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/InfinityBladeWeapons/Weapons/Blade/Silly_Weapons/Blade_Baguette/SK_Blade_Baguette.SK_Blade_Baguette'"));
+	if (WeaponMeshRef.Object)
+	{
+		Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+		Weapon->SetSkeletalMesh(WeaponMeshRef.Object);
+		Weapon->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+	}
 }
 
 void AUCCharacterPlayer::BeginPlay()
