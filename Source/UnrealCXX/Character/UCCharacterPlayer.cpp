@@ -55,6 +55,18 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 	{
 		AttackAction = InputActionAttackRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> ComboActionMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealCXX/Animation/AM_ComboAttack.AM_ComboAttack'"));
+	if (ComboActionMontageRef.Object)
+	{
+		ComboActionMontage = ComboActionMontageRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UUCComboActionData> ComboActionDataRef(TEXT("/Script/UnrealCXX.UCComboActionData'/Game/UnrealCXX/CharacterAction/AUC_ComboAttack.AUC_ComboAttack'"));
+	if (ComboActionDataRef.Object)
+	{
+		ComboActionData = ComboActionDataRef.Object;
+	}
 }
 
 void AUCCharacterPlayer::BeginPlay()
