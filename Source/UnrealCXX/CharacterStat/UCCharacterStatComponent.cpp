@@ -6,7 +6,7 @@
 // Sets default values for this component's properties
 UUCCharacterStatComponent::UUCCharacterStatComponent()
 {
-	MaxHp = 200.0f;
+	MaxHp = 100.0f;
 	CurrentHp = MaxHp;
 }
 

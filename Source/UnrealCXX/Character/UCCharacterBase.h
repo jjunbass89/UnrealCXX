@@ -32,7 +32,7 @@ protected:
 	virtual void SetDead();
 	void PlayDeadAnimation();
 
-	float DeadEventDelayTime = 5.0f;	
+	float DeadEventDelayTime = 2.0f;	
 
 // Stat Section
 protected:

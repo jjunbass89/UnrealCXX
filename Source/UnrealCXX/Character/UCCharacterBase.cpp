@@ -81,31 +81,43 @@ void AUCCharacterBase::PostInitializeComponents()
 
 void AUCCharacterBase::AttackHitCheck()
 {
-	FHitResult OutHitResult;
+	TSet<AActor*> OutHitActors;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
 
-	const float AttackRange = 40.0f;
-	const float AttackRadius = 50.0f;
-	const float AttackDamage = 30.0f;
-	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
-	const FVector End = Start + GetActorForwardVector() * AttackRange;
+	const float AttackRadius = 60.0f; // 50
+	const float AttackDamage = 30.0f; // 30
 
-	bool HitDetected = GetWorld()->SweepSingleByChannel(OutHitResult, Start, End, FQuat::Identity, CCHANNEL_UCACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
-	if (HitDetected)
+	FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
+	FVector End = Start + GetActorForwardVector() * AttackRadius * 2;
+
+	for (size_t i = 0; i < 3; i++)
 	{
-		FDamageEvent DamageEvent;
-		OutHitResult.GetActor()->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
-	}
+		TArray<FHitResult> OutHitResults;
+		Start += GetActorForwardVector() * AttackRadius;
+		End += GetActorForwardVector() * AttackRadius;
+		bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_UCACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+		if (HitDetected)
+		{
+			for (auto OutHitResult : OutHitResults)
+			{
+				OutHitActors.Add(OutHitResult.GetActor());
+			}
+		}
 
 #if ENABLE_DRAW_DEBUG
 
-	FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
-	float CapsuleHalfHeight = AttackRange * 0.5f;
-	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
-
-	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 5.0f);
+		FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
+		FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+		DrawDebugSphere(GetWorld(), CapsuleOrigin, AttackRadius, 16, DrawColor, false, 5.0f);
 
 #endif
+	}
+
+	for (auto OutHitActor : OutHitActors)
+	{
+		FDamageEvent DamageEvent;
+		OutHitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+	}
 }
 
 float AUCCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
