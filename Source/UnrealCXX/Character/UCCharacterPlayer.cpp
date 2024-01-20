@@ -11,6 +11,7 @@
 #include "Animation/AnimMontage.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UCComboActionData.h"
+#include "FX/UCCircleRing.h"
 
 AUCCharacterPlayer::AUCCharacterPlayer()
 {
@@ -75,6 +76,8 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 		Weapon->SetSkeletalMesh(WeaponMeshRef.Object);
 		Weapon->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 	}
+
+	CircleRingClass = AUCCircleRing::StaticClass();
 }
 
 void AUCCharacterPlayer::BeginPlay()
@@ -86,6 +89,11 @@ void AUCCharacterPlayer::BeginPlay()
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
+
+	FVector WorldSpawnLocation = GetActorLocation();
+	AActor* CircleRingActor = GetWorld()->SpawnActor(CircleRingClass, &WorldSpawnLocation, &FRotator::ZeroRotator);
+	CircleRing = Cast<AUCCircleRing>(CircleRingActor);
+	CircleRing->SetActorHiddenInGame(true);
 }
 
 void AUCCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -112,11 +120,21 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 	{
 		Move();
 	}
+
+	if (bNewDestinationSet)
+	{
+		const float distance = FVector::Dist(NewDestination, GetActorLocation());
+		if (distance < 120.0f)
+		{
+			CircleRing->SetActorHiddenInGame(true);
+		}
+	}
 }
 
 void AUCCharacterPlayer::InputRightMouseButtonPressed()
 {
 	bClickRightMouse = true;
+	bNewDestinationSet = false;
 }
 	
 void AUCCharacterPlayer::InputRightMouseButtonReleased()
@@ -133,6 +151,27 @@ void AUCCharacterPlayer::SetNewDestination(const FVector Destination)
 	}
 }
 
+void AUCCharacterPlayer::UpdateCircleRing(const FVector Destination)
+{
+	const float distance = FVector::Dist(NewDestination, Destination);
+	if (!bNewDestinationSet)
+	{
+		bNewDestinationSet = true;
+		if (distance > 120.0f)
+		{
+			NewDestination = FVector(Destination.X, Destination.Y, Destination.Z + 1.0f);
+
+			CircleRing->SetActorLocation(NewDestination);
+			CircleRing->SetActorHiddenInGame(false);
+		}
+	}
+	else if (distance > 120.0f)
+	{
+		CircleRing->SetActorHiddenInGame(true);
+	}
+}
+
+
 void AUCCharacterPlayer::Move()
 {
 	FHitResult Hit;
@@ -142,6 +181,7 @@ void AUCCharacterPlayer::Move()
 	if (Hit.bBlockingHit)
 	{
 		SetNewDestination(Hit.ImpactPoint);
+		UpdateCircleRing(Hit.ImpactPoint);
 	}
 }
 

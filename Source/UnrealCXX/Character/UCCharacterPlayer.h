@@ -84,4 +84,18 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USkeletalMeshComponent> Weapon;	
+
+// Move Section
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Move, Meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AUCCircleRing> CircleRingClass;
+
+	UPROPERTY(VisibleAnywhere, Category = Move, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class AUCCircleRing> CircleRing;
+
+	bool bNewDestinationSet;
+
+	FVector NewDestination;
+
+	void UpdateCircleRing(const FVector Destination);
 };
