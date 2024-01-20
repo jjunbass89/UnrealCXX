@@ -12,6 +12,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UCComboActionData.h"
 #include "FX/UCCircleRing.h"
+#include "Components/CapsuleComponent.h"
+#include "Physics/UCCollision.h"
+#include "Engine/DamageEvents.h"
 
 const float AUCCharacterPlayer::MaxTargetArmLength = 1200.0f;
 const float AUCCharacterPlayer::MinTargetArmLength = 220.0f;
@@ -163,7 +166,6 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 		}
 
 		RotationToCursor();
-		Attack();
 	}
 
 	if (bIsZoomingIn)
@@ -263,43 +265,20 @@ void AUCCharacterPlayer::Move()
 	}
 }
 
-void AUCCharacterPlayer::Attack()
-{
-	ProcessComboCommand();
-}
-
 void AUCCharacterPlayer::InputLeftMouseButtonPressed()
 {
 	bClickLeftMouse = true;
-	CurrentCombo = 0;
+
+	if (!bRunCombo)
+	{
+		bRunCombo = true;
+		ComboActionBegin();
+	}
 }
 
 void AUCCharacterPlayer::InputLeftMouseButtonReleased()
 {
 	bClickLeftMouse = false;
-}
-
-void AUCCharacterPlayer::ProcessComboCommand()
-{
-	if (CurrentCombo == ComboActionData->MaxComboCount)
-	{
-		CurrentCombo = 0;
-	}
-
-	if (CurrentCombo == 0)
-	{
-		ComboActionBegin();
-		return;
-	}
-
-	if (!ComboTimerHandle.IsValid())
-	{
-		HasNextComboCommand = false;
-	}
-	else
-	{
-		HasNextComboCommand = true;
-	}
 }
 
 void AUCCharacterPlayer::ComboActionBegin()
@@ -311,21 +290,11 @@ void AUCCharacterPlayer::ComboActionBegin()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
 	// Animation Setting
-	const float AttackSpeedRate = 1.0f;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	AnimInstance->Montage_Play(ComboActionMontage, AttackSpeedRate);
-
-	FOnMontageEnded EndDelegate;
-	EndDelegate.BindUObject(this, &AUCCharacterPlayer::ComboActionEnd);
-	AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionMontage);
-
+	
 	ComboTimerHandle.Invalidate();
 	SetComboCheckTimer();
-}
-
-void AUCCharacterPlayer::ComboActionEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
-{
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
 void AUCCharacterPlayer::SetComboCheckTimer()
@@ -333,7 +302,6 @@ void AUCCharacterPlayer::SetComboCheckTimer()
 	int32 ComboIndex = CurrentCombo - 1;
 	ensure(ComboActionData->EffectiveFrameCount.IsValidIndex(ComboIndex));
 
-	const float AttackSpeedRate = 1.0f;
 	float ComboEffectiveTime = (ComboActionData->EffectiveFrameCount[ComboIndex] / ComboActionData->FrameRate) / AttackSpeedRate;
 	if (ComboEffectiveTime > 0.0f)
 	{
@@ -344,17 +312,68 @@ void AUCCharacterPlayer::SetComboCheckTimer()
 void AUCCharacterPlayer::ComboCheck()
 {
 	ComboTimerHandle.Invalidate();
-	if (HasNextComboCommand)
+	if (bClickLeftMouse)
 	{
-		UAnimInstance *AnimInstance = GetMesh()->GetAnimInstance();
+		CurrentCombo++;
+		if (CurrentCombo > ComboActionData->MaxComboCount)
+		{
+			CurrentCombo = 1;
+		}
 
-		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, ComboActionData->MaxComboCount);
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentCombo);
-		AnimInstance->Montage_JumpToSection(NextSection, ComboActionMontage);
+				AnimInstance->Montage_JumpToSection(NextSection, ComboActionMontage);
 		SetComboCheckTimer();
-		HasNextComboCommand = false;
+	}
+	else
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+		bRunCombo = false;
 	}
 }
+
+void AUCCharacterPlayer::AttackHitCheck()
+{
+	int32 ComboIndex = CurrentCombo - 1;
+	TSet<AActor*> OutHitActors;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
+
+	const float AttackRadius = 60.0f; // 50
+	const float AttackDamage = ComboActionData->Damage[ComboIndex];
+
+	FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
+	FVector End = Start + GetActorForwardVector() * AttackRadius * 2;
+
+	for (size_t i = 0; i < 3; i++)
+	{
+		TArray<FHitResult> OutHitResults;
+		Start += GetActorForwardVector() * AttackRadius;
+		End += GetActorForwardVector() * AttackRadius;
+		bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_UCACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+		if (HitDetected)
+		{
+			for (auto OutHitResult : OutHitResults)
+			{
+				OutHitActors.Add(OutHitResult.GetActor());
+			}
+		}
+
+#if ENABLE_DRAW_DEBUG
+
+		FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
+		FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+		DrawDebugSphere(GetWorld(), CapsuleOrigin, AttackRadius, 16, DrawColor, false, 5.0f);
+
+#endif
+	}
+
+	for (auto OutHitActor : OutHitActors)
+	{
+		FDamageEvent DamageEvent;
+		OutHitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+	}
+}
+
 
 void AUCCharacterPlayer::RotationToCursor()
 {

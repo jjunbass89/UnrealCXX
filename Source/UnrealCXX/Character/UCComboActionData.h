@@ -28,4 +28,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = ComboData)
 	TArray<float> EffectiveFrameCount;
+
+	UPROPERTY(EditAnywhere, Category = ComboData)
+	TArray<float> Damage;
 };

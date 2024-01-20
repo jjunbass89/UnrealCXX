@@ -26,6 +26,9 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	virtual void AttackHitCheck() override;
+
 // Camera Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -62,11 +65,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UUCComboActionData> ComboActionData;
 
-	void ProcessComboCommand();
+	bool bClickLeftMouse;
+
+	void InputLeftMouseButtonPressed();
+
+	void InputLeftMouseButtonReleased();
 
 	void ComboActionBegin();
-
-	void ComboActionEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
 	void SetComboCheckTimer();
 
@@ -74,11 +79,19 @@ protected:
 
 	void RotationToCursor();
 
+	bool bRunCombo = false;
+
 	int32 CurrentCombo = 0;
 
 	FTimerHandle ComboTimerHandle;
 
-	bool HasNextComboCommand = false;
+	float AttackSpeedRate = 1.0f;
+
+	bool bNewDestinationSet;
+
+	FVector NewDestination;
+
+	void UpdateCircleRing(const FVector Destination);
 
 // Item Section
 protected:
@@ -102,21 +115,6 @@ protected:
 	void InputRightMouseButtonReleased();
 
 	void SetNewDestination(const FVector Destination);
-
-	void Attack();
-
-	bool bClickLeftMouse;
-
-	void InputLeftMouseButtonPressed();
-
-	void InputLeftMouseButtonReleased();
-
-	bool bNewDestinationSet;
-
-	FVector NewDestination;
-
-	void UpdateCircleRing(const FVector Destination);
-
 
 	// Zoom Section
 protected:
