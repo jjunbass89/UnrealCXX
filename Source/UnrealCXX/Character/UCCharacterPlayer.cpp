@@ -157,6 +157,16 @@ void AUCCharacterPlayer::ComboActionBegin()
 	// Movement Setting
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
+	// Rotation
+	FHitResult Hit;
+	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+	if (Hit.bBlockingHit)
+	{
+		const FVector headingVector = Hit.ImpactPoint - GetActorLocation();
+		SetActorRotation((FVector(headingVector.X, headingVector.Y, 0.0f)).Rotation());
+	}
+
 	// Animation Setting
 	const float AttackSpeedRate = 1.0f;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
