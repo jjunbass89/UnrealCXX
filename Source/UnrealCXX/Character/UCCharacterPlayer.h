@@ -81,6 +81,7 @@ protected:
 	void ComboActionEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
 	void SetComboCheckTimer();
 	void ComboCheck();
+	void RotationToCursor();
 
 	int32 CurrentCombo = 0;
 	FTimerHandle ComboTimerHandle;

@@ -124,6 +124,7 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 
 	if (bNewDestinationSet)
 	{
+		// Hide FX when player arrive at the destination.
 		const float distance = FVector::Dist(NewDestination, GetActorLocation());
 		if (distance < 120.0f)
 		{
@@ -133,9 +134,15 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 
 	if (bClickLeftMouse)
 	{
-		NewDestination = GetActorLocation();
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
+		// Initializes the target location when the attack begins.
+		const float distance = FVector::Dist(NewDestination, GetActorLocation());
+		if (distance > 120.0f)
+		{
+			NewDestination = GetActorLocation();
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
+		}
 
+		RotationToCursor();
 		Attack();
 	}
 }
@@ -144,6 +151,12 @@ void AUCCharacterPlayer::InputRightMouseButtonPressed()
 {
 	bClickRightMouse = true;
 	bNewDestinationSet = false;
+
+	// Once it starts moving, stop the combo.
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->StopAllMontages(0.1f);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	CurrentCombo = 0;
 }
 	
 void AUCCharacterPlayer::InputRightMouseButtonReleased()
@@ -229,21 +242,6 @@ void AUCCharacterPlayer::ProcessComboCommand()
 
 void AUCCharacterPlayer::ComboActionBegin()
 {
-	// Rotation
-	FHitResult Hit;
-	
-	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-	PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
-	if (Hit.bBlockingHit)
-	{
-		const FVector headingVector = Hit.ImpactPoint - GetActorLocation();
-		SetActorRotation((FVector(headingVector.X, headingVector.Y, 0.0f)).Rotation());
-	}
-	else
-	{
-		return;
-	}
-
 	// Combo Status
 	CurrentCombo = 1;
 
@@ -265,7 +263,6 @@ void AUCCharacterPlayer::ComboActionBegin()
 
 void AUCCharacterPlayer::ComboActionEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
-	ensure(CurrentCombo != 0);
 	CurrentCombo = 0;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
@@ -285,15 +282,29 @@ void AUCCharacterPlayer::SetComboCheckTimer()
 
 void AUCCharacterPlayer::ComboCheck()
 {
-	 ComboTimerHandle.Invalidate();
-	 if (HasNextComboCommand)
-	 {
-	 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	ComboTimerHandle.Invalidate();
+	if (HasNextComboCommand)
+	{
+		UAnimInstance *AnimInstance = GetMesh()->GetAnimInstance();
 
-	 	CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, ComboActionData->MaxComboCount);
-	 	FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentCombo);
-	 	AnimInstance->Montage_JumpToSection(NextSection, ComboActionMontage);
-	 	SetComboCheckTimer();
-	 	HasNextComboCommand = false;
-	 }
+		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, ComboActionData->MaxComboCount);
+		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentCombo);
+		AnimInstance->Montage_JumpToSection(NextSection, ComboActionMontage);
+		SetComboCheckTimer();
+		HasNextComboCommand = false;
+	}
+}
+
+void AUCCharacterPlayer::RotationToCursor()
+{
+	FHitResult Hit;
+
+	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+	if (Hit.bBlockingHit)
+	{
+		const FVector headingVector = Hit.ImpactPoint - GetActorLocation();
+		const FRotator targetRotator = FVector(headingVector.X, headingVector.Y, 0.0f).Rotation();
+		SetActorRotation(targetRotator);
+	}
 }
