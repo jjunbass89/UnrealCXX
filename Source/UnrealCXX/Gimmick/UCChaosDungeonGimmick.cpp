@@ -3,10 +3,13 @@
 
 #include "Gimmick/UCChaosDungeonGimmick.h"
 #include "Character/UCCharacterNonPlayer.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	OpponentSpawnTime = 2.0f;
 	OpponentClass = AUCCharacterNonPlayer::StaticClass();
 }
@@ -14,19 +17,26 @@ AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
 void AUCChaosDungeonGimmick::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-
 }
 
 void AUCChaosDungeonGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(OpponentTimerHandle, this, &AUCChaosDungeonGimmick::OnOpponentsSpawn, OpponentSpawnTime, false);
+	GetWorld()->GetTimerManager().SetTimer(OpponentsSpawnTimerHandle, this, &AUCChaosDungeonGimmick::OnOpponentsSpawn, OpponentSpawnTime, false);
 }
 
-void AUCChaosDungeonGimmick::OnOpponentDestroyed(AActor* DestroyedActor)
+void AUCChaosDungeonGimmick::Tick(float DeltaSeconds)
 {
-	GetWorld()->GetTimerManager().SetTimer(OpponentTimerHandle, this, &AUCChaosDungeonGimmick::OnOpponentSpawn, OpponentSpawnTime, false);
+	Super::Tick(DeltaSeconds);
+	
+	TArray<AActor*> arrOutActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, arrOutActors);
+	if (bDoneSpawnOpponents && arrOutActors.Num() != MaxCurrentOponetsNum)
+	{
+		bDoneSpawnOpponents = false;
+		OnOpponentsSpawn();
+	}
 }
 
 // 6 | 5 | 4 
@@ -72,20 +82,23 @@ FVector AUCChaosDungeonGimmick::CalcRandomLocation()
 
 void AUCChaosDungeonGimmick::OnOpponentsSpawn()
 {
-	for (size_t i = 0; i < 20; i++)
+	TArray<AActor*> arrOutActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, arrOutActors);
+	
+	int32 NumNeedToSpawn = MaxCurrentOponetsNum - arrOutActors.Num();
+	TotalKillCount += NumNeedToSpawn;
+
+	for (size_t i = 0; i < NumNeedToSpawn; i++)
 	{
 		OnOpponentSpawn();
 	}
+
+	bDoneSpawnOpponents = true;
 }
 
 void AUCChaosDungeonGimmick::OnOpponentSpawn()
 {
 	const FVector SpawnLocation = CalcRandomLocation();
 	const FRotator SpawnRotator = FVector(-SpawnLocation.X, -SpawnLocation.Y, 0.0f).Rotation();
-	AActor* OpponentActor = GetWorld()->SpawnActor(OpponentClass, &SpawnLocation, &SpawnRotator);
-	AUCCharacterNonPlayer* UCOpponentCharacter = Cast<AUCCharacterNonPlayer>(OpponentActor);
-	if (UCOpponentCharacter)
-	{
-		UCOpponentCharacter->OnDestroyed.AddDynamic(this, &AUCChaosDungeonGimmick::OnOpponentDestroyed);
-	}
+	GetWorld()->SpawnActor(OpponentClass, &SpawnLocation, &SpawnRotator);
 }
