@@ -5,16 +5,19 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interface/UCAnimationAttackInterface.h"
+#include "Interface/UCCharacterWidgetInterface.h"
 #include "UCCharacterBase.generated.h"
 
 UCLASS()
-class UNREALCXX_API AUCCharacterBase : public ACharacter, public IUCAnimationAttackInterface
+class UNREALCXX_API AUCCharacterBase : public ACharacter, public IUCAnimationAttackInterface, public IUCCharacterWidgetInterface
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	AUCCharacterBase();
+
+	virtual void PostInitializeComponents() override;
 
 // Attack Hit Section
 protected:
@@ -30,4 +33,16 @@ protected:
 	void PlayDeadAnimation();
 
 	float DeadEventDelayTime = 5.0f;	
+
+// Stat Section
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UUCCharacterStatComponent> Stat;
+
+// UI Widget Section
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UWidgetComponent> HpBar;
+
+	virtual void SetupCharacterWidget(class UUCUserWidget* InUserWidget) override;
 };
