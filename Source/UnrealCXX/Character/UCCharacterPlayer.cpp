@@ -109,7 +109,8 @@ void AUCCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputRightMouseButtonPressed);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
-	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::Attack);
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputLeftMouseButtonPressed);
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputLeftMouseButtonReleased);
 }
 
 void AUCCharacterPlayer::Tick(float DeltaTime)
@@ -128,6 +129,14 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 		{
 			CircleRing->SetActorHiddenInGame(true);
 		}
+	}
+
+	if (bClickLeftMouse)
+	{
+		NewDestination = GetActorLocation();
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
+
+		Attack();
 	}
 }
 
@@ -190,6 +199,15 @@ void AUCCharacterPlayer::Attack()
 	ProcessComboCommand();
 }
 
+void AUCCharacterPlayer::InputLeftMouseButtonPressed()
+{
+	bClickLeftMouse = true;
+}
+
+void AUCCharacterPlayer::InputLeftMouseButtonReleased()
+{
+	bClickLeftMouse = false;
+}
 
 void AUCCharacterPlayer::ProcessComboCommand()
 {

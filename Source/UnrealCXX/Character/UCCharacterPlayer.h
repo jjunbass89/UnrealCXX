@@ -60,6 +60,12 @@ protected:
 
 	void Attack();
 
+	bool bClickLeftMouse;
+
+	void InputLeftMouseButtonPressed();
+
+	void InputLeftMouseButtonReleased();
+
 // Combo Action Section
 protected:
 
