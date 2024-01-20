@@ -8,6 +8,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "Animation/AnimMontage.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "UCComboActionData.h"
 
 AUCCharacterPlayer::AUCCharacterPlayer()
 {
@@ -17,7 +20,7 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 	// Camera
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->SetRelativeRotation(FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(-30.0f)));
+	CameraBoom->SetRelativeRotation(FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(30.0f)));
 	CameraBoom->TargetArmLength = 800.0f;
 	CameraBoom->SocketOffset = FVector(0.0f, 0.0f, 400.0f);
 	CameraBoom->bUsePawnControlRotation = true;
@@ -46,6 +49,12 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 	{
 		JumpAction = InputActionJumpRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionAttackRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_Attack.IA_Attack'"));
+	if (nullptr != InputActionAttackRef.Object)
+	{
+		AttackAction = InputActionAttackRef.Object;
+	}
 }
 
 void AUCCharacterPlayer::BeginPlay()
@@ -70,9 +79,9 @@ void AUCCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputRightMouseButtonPressed);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
-
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputRightMouseButtonPressed);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::Attack);
 }
 
 void AUCCharacterPlayer::Tick(float DeltaTime)
@@ -114,4 +123,84 @@ void AUCCharacterPlayer::Move()
 	{
 		SetNewDestination(Hit.ImpactPoint);
 	}
+}
+
+void AUCCharacterPlayer::Attack()
+{
+	ProcessComboCommand();
+}
+
+
+void AUCCharacterPlayer::ProcessComboCommand()
+{
+	if (CurrentCombo == 0)
+	{
+		ComboActionBegin();
+		return;
+	}
+
+	if (!ComboTimerHandle.IsValid())
+	{
+		HasNextComboCommand = false;
+	}
+	else
+	{
+		HasNextComboCommand = true;
+	}
+}
+
+void AUCCharacterPlayer::ComboActionBegin()
+{
+	// Combo Status
+	CurrentCombo = 1;
+
+	// Movement Setting
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+	// Animation Setting
+	const float AttackSpeedRate = 1.0f;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->Montage_Play(ComboActionMontage, AttackSpeedRate);
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AUCCharacterPlayer::ComboActionEnd);
+	AnimInstance->Montage_SetEndDelegate(EndDelegate, ComboActionMontage);
+
+	ComboTimerHandle.Invalidate();
+	SetComboCheckTimer();
+}
+
+void AUCCharacterPlayer::ComboActionEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+{
+	ensure(CurrentCombo != 0);
+	CurrentCombo = 0;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+}
+
+void AUCCharacterPlayer::SetComboCheckTimer()
+{
+	 int32 ComboIndex = CurrentCombo - 1;
+	 ensure(ComboActionData->EffectiveFrameCount.IsValidIndex(ComboIndex));
+
+	 const float AttackSpeedRate = 1.0f;
+	 float ComboEffectiveTime = (ComboActionData->EffectiveFrameCount[ComboIndex] / ComboActionData->FrameRate) / AttackSpeedRate;
+	 if (ComboEffectiveTime > 0.0f)
+	 {
+	 	GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &AUCCharacterPlayer::ComboCheck, ComboEffectiveTime, false);
+	 }
+}
+
+void AUCCharacterPlayer::ComboCheck()
+{
+	 ComboTimerHandle.Invalidate();
+	 if (HasNextComboCommand)
+	 {
+	 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	 	CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, ComboActionData->MaxComboCount);
+	 	FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentCombo);
+	 	AnimInstance->Montage_JumpToSection(NextSection, ComboActionMontage);
+	 	SetComboCheckTimer();
+	 	HasNextComboCommand = false;
+	 }
 }
