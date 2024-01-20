@@ -14,6 +14,9 @@ class UNREALCXX_API AUCPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+public:
+	AUCPlayerController();
+
 protected:
 	virtual void BeginPlay() override;
 };

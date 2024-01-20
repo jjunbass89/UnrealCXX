@@ -7,9 +7,13 @@
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 
 AUCCharacterPlayer::AUCCharacterPlayer()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+
 	// Camera
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -17,6 +21,7 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 	CameraBoom->TargetArmLength = 800.0f;
 	CameraBoom->SocketOffset = FVector(0.0f, 0.0f, 400.0f);
 	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->bDoCollisionTest = false;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -60,21 +65,53 @@ void AUCCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::Move);
+	//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+	//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputRightMouseButtonPressed);
+	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
+
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputRightMouseButtonPressed);
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
 }
 
-void AUCCharacterPlayer::Move(const FInputActionValue& Value)
+void AUCCharacterPlayer::Tick(float DeltaTime)
 {
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	Super::Tick(DeltaTime);
 
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	if (bClickRightMouse)
+	{
+		Move();
+	}
+}
 
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+void AUCCharacterPlayer::InputRightMouseButtonPressed()
+{
+	bClickRightMouse = true;
+}
+	
+void AUCCharacterPlayer::InputRightMouseButtonReleased()
+{
+	bClickRightMouse = false;
+}
 
-	AddMovementInput(ForwardDirection, MovementVector.X);
-	AddMovementInput(RightDirection, MovementVector.Y);
+void AUCCharacterPlayer::SetNewDestination(const FVector Destination)
+{
+	const float distance = FVector::Dist(Destination, GetActorLocation());
+	if (distance > 120.0f)
+	{
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), Destination);
+	}
+}
+
+void AUCCharacterPlayer::Move()
+{
+	FHitResult Hit;
+	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+
+	if (Hit.bBlockingHit)
+	{
+		SetNewDestination(Hit.ImpactPoint);
+	}
 }

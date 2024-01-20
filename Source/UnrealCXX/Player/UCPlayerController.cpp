@@ -3,10 +3,12 @@
 
 #include "Player/UCPlayerController.h"
 
+AUCPlayerController::AUCPlayerController()
+{
+	bShowMouseCursor = true;
+}
+
 void AUCPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	FInputModeGameOnly GameOnlyInputMode;
-	SetInputMode(GameOnlyInputMode);
 }

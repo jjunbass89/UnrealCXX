@@ -24,6 +24,8 @@ protected:
 public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void Tick(float DeltaTime) override;
+
 // Camera Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
@@ -43,5 +45,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> MoveAction;
 
-	void Move(const FInputActionValue& Value);
+	void Move();
+
+	bool bClickRightMouse;	
+
+	void InputRightMouseButtonPressed();
+	
+	void InputRightMouseButtonReleased();
+
+	void SetNewDestination(const FVector Destination);
 };
