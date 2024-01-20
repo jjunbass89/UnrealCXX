@@ -13,6 +13,11 @@
 #include "UCComboActionData.h"
 #include "FX/UCCircleRing.h"
 
+const float AUCCharacterPlayer::MaxTargetArmLength = 1200.0f;
+const float AUCCharacterPlayer::MinTargetArmLength = 220.0f;
+const float AUCCharacterPlayer::MaxSocketOffset = 600.0f;
+const float AUCCharacterPlayer::MinSocketOffset = 110.0f;
+
 AUCCharacterPlayer::AUCCharacterPlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -22,8 +27,8 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetRelativeRotation(FQuat(FVector(0.0f, 1.0f, 0.0f), FMath::DegreesToRadians(30.0f)));
-	CameraBoom->TargetArmLength = 800.0f;
-	CameraBoom->SocketOffset = FVector(0.0f, 0.0f, 400.0f);
+	CameraBoom->TargetArmLength = MaxTargetArmLength;
+	CameraBoom->SocketOffset = FVector(0.0f, 0.0f, MaxSocketOffset);
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->bDoCollisionTest = false;
 
@@ -57,18 +62,30 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 		AttackAction = InputActionAttackRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputZoomInRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_ZoomIn.IA_ZoomIn'"));
+	if (nullptr != InputZoomInRef.Object)
+	{
+		ZoomIn = InputZoomInRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputZoomOutRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_ZoomOut.IA_ZoomOut'"));
+	if (nullptr != InputZoomOutRef.Object)
+	{
+		ZoomOut = InputZoomOutRef.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> ComboActionMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealCXX/Animation/AM_ComboAttack.AM_ComboAttack'"));
 	if (ComboActionMontageRef.Object)
 	{
 		ComboActionMontage = ComboActionMontageRef.Object;
 	}
-
+	
 	static ConstructorHelpers::FObjectFinder<UUCComboActionData> ComboActionDataRef(TEXT("/Script/UnrealCXX.UCComboActionData'/Game/UnrealCXX/CharacterAction/AUC_ComboAttack.AUC_ComboAttack'"));
 	if (ComboActionDataRef.Object)
 	{
 		ComboActionData = ComboActionDataRef.Object;
 	}
-
+	
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> WeaponMeshRef(TEXT("/Script/Engine.SkeletalMesh'/Game/InfinityBladeWeapons/Weapons/Blade/Silly_Weapons/Blade_Baguette/SK_Blade_Baguette.SK_Blade_Baguette'"));
 	if (WeaponMeshRef.Object)
 	{
@@ -76,8 +93,14 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 		Weapon->SetSkeletalMesh(WeaponMeshRef.Object);
 		Weapon->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 	}
-
+	
 	CircleRingClass = AUCCircleRing::StaticClass();
+	
+	bClickRightMouse = false;
+	bClickLeftMouse = false;
+	bIsZoomingIn = false;
+	bIsZoomingOut = false;
+	ZoomFactor = 0.0f;
 }
 
 void AUCCharacterPlayer::BeginPlay()
@@ -106,6 +129,8 @@ void AUCCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputLeftMouseButtonPressed);
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputLeftMouseButtonReleased);
+	EnhancedInputComponent->BindAction(ZoomIn, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputMouseWheelUp);
+	EnhancedInputComponent->BindAction(ZoomOut, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputMouseWheelDown);
 }
 
 void AUCCharacterPlayer::Tick(float DeltaTime)
@@ -139,6 +164,32 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 
 		RotationToCursor();
 		Attack();
+	}
+
+	if (bIsZoomingIn)
+	{
+		ZoomFactor += DeltaTime / 2.0f;
+		CameraBoom->TargetArmLength = FMath::Lerp<float>(MaxTargetArmLength, MinTargetArmLength, ZoomFactor);
+		CameraBoom->SocketOffset = FVector(0.0f, 0.0f, FMath::Lerp<float>(MaxSocketOffset, MinSocketOffset, ZoomFactor));
+		if (ZoomFactor > 1.0f)
+		{
+			bIsZoomingIn = false;
+			CameraBoom->TargetArmLength = MinTargetArmLength;
+			CameraBoom->SocketOffset = FVector(0.0f, 0.0f, MinSocketOffset);
+		}
+	}
+
+	if (bIsZoomingOut)
+	{
+		ZoomFactor -= DeltaTime / 2.0f;
+		CameraBoom->TargetArmLength = FMath::Lerp<float>(MaxTargetArmLength, MinTargetArmLength, ZoomFactor);
+		CameraBoom->SocketOffset = FVector(0.0f, 0.0f, FMath::Lerp<float>(MaxSocketOffset, MinSocketOffset, ZoomFactor));
+		if (ZoomFactor < 0.0f)
+		{
+			bIsZoomingOut = false;
+			CameraBoom->TargetArmLength = MaxTargetArmLength;
+			CameraBoom->SocketOffset = FVector(0.0f, 0.0f, MaxSocketOffset);
+		}
 	}
 }
 
@@ -187,6 +238,17 @@ void AUCCharacterPlayer::UpdateCircleRing(const FVector Destination)
 	}
 }
 
+void AUCCharacterPlayer::InputMouseWheelUp()
+{
+	bIsZoomingIn = true;
+	bIsZoomingOut = false;
+}
+
+void AUCCharacterPlayer::InputMouseWheelDown()
+{
+	bIsZoomingOut = true;
+	bIsZoomingIn = false;
+}
 
 void AUCCharacterPlayer::Move()
 {

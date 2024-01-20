@@ -67,7 +67,7 @@ AUCCharacterBase::AUCCharacterBase()
 	{
 		HpBar->SetWidgetClass(HpBarWidgetRef.Class);
 		HpBar->SetWidgetSpace(EWidgetSpace::Screen);
-		HpBar->SetDrawSize(FVector2D(150.0f, 10.0f));
+		HpBar->SetDrawSize(FVector2D(80.0f, 8.0f));
 		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }

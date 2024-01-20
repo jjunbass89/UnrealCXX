@@ -48,27 +48,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> AttackAction;
 
-	void Move();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> ZoomIn;
 
-	bool bClickRightMouse;	
-
-	void InputRightMouseButtonPressed();
-	
-	void InputRightMouseButtonReleased();
-
-	void SetNewDestination(const FVector Destination);
-
-	void Attack();
-
-	bool bClickLeftMouse;
-
-	void InputLeftMouseButtonPressed();
-
-	void InputLeftMouseButtonReleased();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> ZoomOut;
 
 // Combo Action Section
 protected:
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
 	TObjectPtr<class UAnimMontage> ComboActionMontage;
 
@@ -78,13 +65,19 @@ protected:
 	void ProcessComboCommand();
 
 	void ComboActionBegin();
+
 	void ComboActionEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+
 	void SetComboCheckTimer();
+
 	void ComboCheck();
+
 	void RotationToCursor();
 
 	int32 CurrentCombo = 0;
+
 	FTimerHandle ComboTimerHandle;
+
 	bool HasNextComboCommand = false;
 
 // Item Section
@@ -100,9 +93,48 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Move, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class AUCCircleRing> CircleRing;
 
+	void Move();
+
+	bool bClickRightMouse;
+
+	void InputRightMouseButtonPressed();
+
+	void InputRightMouseButtonReleased();
+
+	void SetNewDestination(const FVector Destination);
+
+	void Attack();
+
+	bool bClickLeftMouse;
+
+	void InputLeftMouseButtonPressed();
+
+	void InputLeftMouseButtonReleased();
+
 	bool bNewDestinationSet;
 
 	FVector NewDestination;
 
 	void UpdateCircleRing(const FVector Destination);
+
+
+	// Zoom Section
+protected:
+	static const float MaxTargetArmLength;
+
+	static const float MinTargetArmLength;
+
+	static const float MaxSocketOffset;
+
+	static const float MinSocketOffset;
+
+	float ZoomFactor;
+
+	bool bIsZoomingIn;
+
+	bool bIsZoomingOut;
+
+	void InputMouseWheelUp();
+
+	void InputMouseWheelDown();
 };
