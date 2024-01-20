@@ -102,14 +102,9 @@ void AUCCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-	//EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputRightMouseButtonPressed);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputRightMouseButtonPressed);
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputRightMouseButtonPressed);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
-	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AUCCharacterPlayer::InputLeftMouseButtonPressed);
+	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputLeftMouseButtonPressed);
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputLeftMouseButtonReleased);
 }
 
@@ -156,7 +151,6 @@ void AUCCharacterPlayer::InputRightMouseButtonPressed()
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	AnimInstance->StopAllMontages(0.1f);
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-	CurrentCombo = 0;
 }
 	
 void AUCCharacterPlayer::InputRightMouseButtonReleased()
@@ -215,6 +209,7 @@ void AUCCharacterPlayer::Attack()
 void AUCCharacterPlayer::InputLeftMouseButtonPressed()
 {
 	bClickLeftMouse = true;
+	CurrentCombo = 0;
 }
 
 void AUCCharacterPlayer::InputLeftMouseButtonReleased()
@@ -224,6 +219,11 @@ void AUCCharacterPlayer::InputLeftMouseButtonReleased()
 
 void AUCCharacterPlayer::ProcessComboCommand()
 {
+	if (CurrentCombo == ComboActionData->MaxComboCount)
+	{
+		CurrentCombo = 0;
+	}
+
 	if (CurrentCombo == 0)
 	{
 		ComboActionBegin();
@@ -263,21 +263,20 @@ void AUCCharacterPlayer::ComboActionBegin()
 
 void AUCCharacterPlayer::ComboActionEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
-	CurrentCombo = 0;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
 void AUCCharacterPlayer::SetComboCheckTimer()
 {
-	 int32 ComboIndex = CurrentCombo - 1;
-	 ensure(ComboActionData->EffectiveFrameCount.IsValidIndex(ComboIndex));
+	int32 ComboIndex = CurrentCombo - 1;
+	ensure(ComboActionData->EffectiveFrameCount.IsValidIndex(ComboIndex));
 
-	 const float AttackSpeedRate = 1.0f;
-	 float ComboEffectiveTime = (ComboActionData->EffectiveFrameCount[ComboIndex] / ComboActionData->FrameRate) / AttackSpeedRate;
-	 if (ComboEffectiveTime > 0.0f)
-	 {
-	 	GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &AUCCharacterPlayer::ComboCheck, ComboEffectiveTime, false);
-	 }
+	const float AttackSpeedRate = 1.0f;
+	float ComboEffectiveTime = (ComboActionData->EffectiveFrameCount[ComboIndex] / ComboActionData->FrameRate) / AttackSpeedRate;
+	if (ComboEffectiveTime > 0.0f)
+	{
+		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this, &AUCCharacterPlayer::ComboCheck, ComboEffectiveTime, false);
+	}
 }
 
 void AUCCharacterPlayer::ComboCheck()

@@ -1,8 +1,8 @@
-Build/
 Binaries/
 Intermediate/
 Saved/
 DerivedDataCache/
+Build/
 .vs/
 *.sln
 .vsconfig

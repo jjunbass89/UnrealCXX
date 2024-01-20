@@ -61,13 +61,13 @@ AUCCharacterBase::AUCCharacterBase()
 	// Widget Component 
 	HpBar = CreateDefaultSubobject<UUCWidgetComponent>(TEXT("Widget"));
 	HpBar->SetupAttachment(GetMesh());
-	HpBar->SetRelativeLocation(FVector(0.0f, 0.0f, 180.0f));
+	HpBar->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
 	static ConstructorHelpers::FClassFinder<UUserWidget> HpBarWidgetRef(TEXT("/Game/UnrealCXX/UI/WBP_HpBar.WBP_HpBar_C"));
 	if (HpBarWidgetRef.Class)
 	{
 		HpBar->SetWidgetClass(HpBarWidgetRef.Class);
 		HpBar->SetWidgetSpace(EWidgetSpace::Screen);
-		HpBar->SetDrawSize(FVector2D(150.0f, 15.0f));
+		HpBar->SetDrawSize(FVector2D(150.0f, 10.0f));
 		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
