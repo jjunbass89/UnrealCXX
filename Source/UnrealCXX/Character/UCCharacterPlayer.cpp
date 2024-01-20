@@ -65,16 +65,34 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 		AttackAction = InputActionAttackRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionQSkillRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_QSkill.IA_QSkill'"));
+	if (nullptr != InputActionQSkillRef.Object)
+	{
+		QSkillAction = InputActionQSkillRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionWSkillRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_WSkill.IA_WSkill'"));
+	if (nullptr != InputActionWSkillRef.Object)
+	{
+		WSkillAction = InputActionWSkillRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionESkillRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_ESkill.IA_ESkill'"));
+	if (nullptr != InputActionESkillRef.Object)
+	{
+		ESkillAction = InputActionESkillRef.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UInputAction> InputZoomInRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_ZoomIn.IA_ZoomIn'"));
 	if (nullptr != InputZoomInRef.Object)
 	{
-		ZoomIn = InputZoomInRef.Object;
+		ZoomInAction = InputZoomInRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> InputZoomOutRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_ZoomOut.IA_ZoomOut'"));
 	if (nullptr != InputZoomOutRef.Object)
 	{
-		ZoomOut = InputZoomOutRef.Object;
+		ZoomOutAction = InputZoomOutRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> ComboActionMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealCXX/Animation/AM_ComboAttack.AM_ComboAttack'"));
@@ -82,7 +100,26 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 	{
 		ComboActionMontage = ComboActionMontageRef.Object;
 	}
-	
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> QSkillMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealCXX/Animation/AM_QSkill.AM_QSkill'"));
+	if (QSkillMontageRef.Object)
+	{
+		QSkillMontage = QSkillMontageRef.Object;
+	}
+
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> WSkillMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealCXX/Animation/AM_WSkill.AM_WSkill'"));
+	if (WSkillMontageRef.Object)
+	{
+		WSkillMontage = WSkillMontageRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> ESkillMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealCXX/Animation/AM_ESkill.AM_ESkill'"));
+	if (ESkillMontageRef.Object)
+	{
+		ESkillMontage = ESkillMontageRef.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UUCComboActionData> ComboActionDataRef(TEXT("/Script/UnrealCXX.UCComboActionData'/Game/UnrealCXX/CharacterAction/AUC_ComboAttack.AUC_ComboAttack'"));
 	if (ComboActionDataRef.Object)
 	{
@@ -132,8 +169,11 @@ void AUCCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputRightMouseButtonReleased);
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputLeftMouseButtonPressed);
 	EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Completed, this, &AUCCharacterPlayer::InputLeftMouseButtonReleased);
-	EnhancedInputComponent->BindAction(ZoomIn, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputMouseWheelUp);
-	EnhancedInputComponent->BindAction(ZoomOut, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputMouseWheelDown);
+	EnhancedInputComponent->BindAction(QSkillAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputQButtonPressed);
+	EnhancedInputComponent->BindAction(WSkillAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputWButtonPressed);
+	EnhancedInputComponent->BindAction(ESkillAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputEButtonPressed);
+	EnhancedInputComponent->BindAction(ZoomInAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputMouseWheelUp);
+	EnhancedInputComponent->BindAction(ZoomOutAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputMouseWheelDown);
 }
 
 void AUCCharacterPlayer::Tick(float DeltaTime)
@@ -145,6 +185,15 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 		Move();
 	}
 
+	if (bIsRotating)
+	{
+		// Initializes the target location when the attack begins.
+		NewDestination = GetActorLocation();
+		GetMovementComponent()->StopMovementImmediately();
+
+		RotationToCursor();
+	}
+
 	if (bNewDestinationSet)
 	{
 		// Hide FX when player arrive at the destination.
@@ -153,19 +202,6 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 		{
 			CircleRing->SetActorHiddenInGame(true);
 		}
-	}
-
-	if (bClickLeftMouse)
-	{
-		// Initializes the target location when the attack begins.
-		const float distance = FVector::Dist(NewDestination, GetActorLocation());
-		if (distance > 120.0f)
-		{
-			NewDestination = GetActorLocation();
-			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
-		}
-
-		RotationToCursor();
 	}
 
 	if (bIsZoomingIn)
@@ -267,11 +303,16 @@ void AUCCharacterPlayer::Move()
 
 void AUCCharacterPlayer::InputLeftMouseButtonPressed()
 {
+	if (bIsRunningQSkill || bIsRunningWSkill || bIsRunningESkill)
+	{
+		return;
+	}
+
 	bClickLeftMouse = true;
 
-	if (!bRunCombo)
+	if (!bIsRunningCombo)
 	{
-		bRunCombo = true;
+		bIsRunningCombo = true;
 		ComboActionBegin();
 	}
 }
@@ -295,6 +336,10 @@ void AUCCharacterPlayer::ComboActionBegin()
 	
 	ComboTimerHandle.Invalidate();
 	SetComboCheckTimer();
+
+	bIsRotating = true;
+	RotationTimerHandle.Invalidate();
+	GetWorld()->GetTimerManager().SetTimer(RotationTimerHandle, this, &AUCCharacterPlayer::StopRotation, 0.5f, false);
 }
 
 void AUCCharacterPlayer::SetComboCheckTimer()
@@ -324,21 +369,164 @@ void AUCCharacterPlayer::ComboCheck()
 		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurrentCombo);
 				AnimInstance->Montage_JumpToSection(NextSection, ComboActionMontage);
 		SetComboCheckTimer();
+
+		bIsRotating = true;
+		RotationTimerHandle.Invalidate();
+		GetWorld()->GetTimerManager().SetTimer(RotationTimerHandle, this, &AUCCharacterPlayer::StopRotation, 0.5f, false);
 	}
 	else
 	{
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-		bRunCombo = false;
+		bIsRunningCombo = false;
 	}
 }
 
 void AUCCharacterPlayer::AttackHitCheck()
 {
+	if (bIsRunningCombo)
+	{
+		AttackComboHitCheck();
+	}
+
+	if (bIsRunningQSkill)
+	{
+		AttackQSkillHitCheck();
+	}
+
+	if (bIsRunningWSkill)
+	{
+		AttackWSkillHitCheck();
+	}
+
+	if (bIsRunningESkill)
+	{
+		AttackESkillHitCheck();
+	}
+}
+
+
+void AUCCharacterPlayer::StopRotation()
+{
+	RotationTimerHandle.Invalidate();
+	bIsRotating = false;
+}
+
+void AUCCharacterPlayer::RotationToCursor()
+{
+	FHitResult Hit;
+
+	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+	if (Hit.bBlockingHit)
+	{
+		const FVector headingVector = Hit.ImpactPoint - GetActorLocation();
+		const FRotator targetRotator = FVector(headingVector.X, headingVector.Y, 0.0f).Rotation();
+		SetActorRotation(targetRotator);
+	}
+}
+
+void AUCCharacterPlayer::InputQButtonPressed()
+{
+	if (bIsRunningQSkill || bIsRunningWSkill || bIsRunningESkill)
+	{
+		return;
+	}
+
+	bIsRunningQSkill = true;
+
+	// Movement Setting
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+	// Animation Setting
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->StopAllMontages(0.1f);
+	AnimInstance->Montage_Play(QSkillMontage, AttackSpeedRate);
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AUCCharacterPlayer::QSkillEnd);
+	AnimInstance->Montage_SetEndDelegate(EndDelegate, QSkillMontage);
+
+	bIsRotating = true;
+	RotationTimerHandle.Invalidate();
+	GetWorld()->GetTimerManager().SetTimer(RotationTimerHandle, this, &AUCCharacterPlayer::StopRotation, 0.5f, false);
+}
+
+void AUCCharacterPlayer::InputWButtonPressed()
+{
+	if (bIsRunningQSkill || bIsRunningWSkill || bIsRunningESkill)
+	{
+		return;
+	}
+
+	bIsRunningWSkill = true;
+
+	// Movement Setting
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+	// Animation Setting
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->StopAllMontages(0.1f);
+	AnimInstance->Montage_Play(WSkillMontage, AttackSpeedRate);
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AUCCharacterPlayer::WSkillEnd);
+	AnimInstance->Montage_SetEndDelegate(EndDelegate, WSkillMontage);
+
+	bIsRotating = true;
+	RotationTimerHandle.Invalidate();
+	GetWorld()->GetTimerManager().SetTimer(RotationTimerHandle, this, &AUCCharacterPlayer::StopRotation, 0.5f, false);
+}
+
+void AUCCharacterPlayer::InputEButtonPressed()
+{
+	if (bIsRunningQSkill || bIsRunningWSkill || bIsRunningESkill)
+	{
+		return;
+	}
+
+	bIsRunningESkill = true;
+
+	// Movement Setting
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+	// Animation Setting
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->StopAllMontages(0.1f);
+	AnimInstance->Montage_Play(ESkillMontage, AttackSpeedRate);
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AUCCharacterPlayer::ESkillEnd);
+	AnimInstance->Montage_SetEndDelegate(EndDelegate, ESkillMontage);
+
+	bIsRotating = true;
+	RotationTimerHandle.Invalidate();
+	GetWorld()->GetTimerManager().SetTimer(RotationTimerHandle, this, &AUCCharacterPlayer::StopRotation, 0.5f, false);
+}
+
+void AUCCharacterPlayer::QSkillEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+{
+	bIsRunningQSkill = false;
+}
+
+
+void AUCCharacterPlayer::WSkillEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+{
+	bIsRunningWSkill = false;
+}
+
+
+void AUCCharacterPlayer::ESkillEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+{
+	bIsRunningESkill = false;
+}
+
+void AUCCharacterPlayer::AttackComboHitCheck()
+{
 	int32 ComboIndex = CurrentCombo - 1;
 	TSet<AActor*> OutHitActors;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
 
-	const float AttackRadius = 60.0f; // 50
+	const float AttackRadius = 60.0f;
 	const float AttackDamage = ComboActionData->Damage[ComboIndex];
 
 	FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
@@ -362,7 +550,7 @@ void AUCCharacterPlayer::AttackHitCheck()
 
 		FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
 		FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
-		DrawDebugSphere(GetWorld(), CapsuleOrigin, AttackRadius, 16, DrawColor, false, 5.0f);
+		DrawDebugSphere(GetWorld(), CapsuleOrigin, AttackRadius, 16, DrawColor, false, 2.0f);
 
 #endif
 	}
@@ -374,17 +562,120 @@ void AUCCharacterPlayer::AttackHitCheck()
 	}
 }
 
-
-void AUCCharacterPlayer::RotationToCursor()
+void AUCCharacterPlayer::AttackQSkillHitCheck()
 {
-	FHitResult Hit;
+	TSet<AActor*> OutHitActors;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
 
-	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-	PlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
-	if (Hit.bBlockingHit)
+	const float AttackRadius = 60.0f;
+	const float AttackDamage = 80.0f;
+
+	FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
+	FVector End = Start + GetActorForwardVector() * AttackRadius * 2;
+
+	for (size_t i = 0; i < 4; i++)
 	{
-		const FVector headingVector = Hit.ImpactPoint - GetActorLocation();
-		const FRotator targetRotator = FVector(headingVector.X, headingVector.Y, 0.0f).Rotation();
-		SetActorRotation(targetRotator);
+		TArray<FHitResult> OutHitResults;
+		Start += GetActorForwardVector() * AttackRadius;
+		End += GetActorForwardVector() * AttackRadius;
+		bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_UCACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+		if (HitDetected)
+		{
+			for (auto OutHitResult : OutHitResults)
+			{
+				OutHitActors.Add(OutHitResult.GetActor());
+			}
+		}
+
+#if ENABLE_DRAW_DEBUG
+
+		FVector SphereOrigin = Start + (End - Start) * 0.5f;
+		FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+		DrawDebugSphere(GetWorld(), SphereOrigin, AttackRadius, 16, DrawColor, false, 2.0f);
+
+#endif
 	}
+
+	for (auto OutHitActor : OutHitActors)
+	{
+		FDamageEvent DamageEvent;
+		OutHitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+	}
+}
+
+void AUCCharacterPlayer::AttackWSkillHitCheck()
+{
+	TSet<AActor*> OutHitActors;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
+
+	const float AttackRadius = 60.0f;
+	const float AttackDamage = 160.0f;
+
+	float rotateAngle = -30.0;
+	for (size_t j = 0; j < 4; j++)
+	{
+		rotateAngle += 15.f;
+		FVector RotatedForwardVector = GetActorForwardVector().RotateAngleAxis(rotateAngle, FVector(0.0f, 0.0f, 1.0f));
+
+		FVector Start = GetActorLocation() + RotatedForwardVector * GetCapsuleComponent()->GetScaledCapsuleRadius();
+		FVector End = Start + RotatedForwardVector * AttackRadius * 2;
+
+		for (size_t i = 0; i < 6; i++)
+		{
+			TArray<FHitResult> OutHitResults;
+			Start += RotatedForwardVector * AttackRadius;
+			End += RotatedForwardVector * AttackRadius;
+			bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_UCACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+			if (HitDetected)
+			{
+				for (auto OutHitResult : OutHitResults)
+				{
+					OutHitActors.Add(OutHitResult.GetActor());
+				}
+			}
+
+#if ENABLE_DRAW_DEBUG
+
+			FVector SphereOrigin = Start + (End - Start) * 0.5f;
+			FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+			DrawDebugSphere(GetWorld(), SphereOrigin, AttackRadius, 16, DrawColor, false, 2.0f);
+
+#endif
+		}
+	}
+
+	for (auto OutHitActor : OutHitActors)
+	{
+		FDamageEvent DamageEvent;
+		OutHitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+	}
+}
+
+void AUCCharacterPlayer::AttackESkillHitCheck()
+{
+	TSet<AActor*> OutHitActors;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
+
+	const float AttackRadius = 400.0f;
+	const float AttackDamage = 240.0f;
+
+	FVector Origin = GetActorLocation();
+
+	TArray<FHitResult> OutHitResults;
+	bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, Origin, Origin, FQuat::Identity, CCHANNEL_UCACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+	if (HitDetected)
+	{
+		for (auto OutHitResult : OutHitResults)
+		{
+			FDamageEvent DamageEvent;
+			OutHitResult.GetActor()->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+		}
+	}
+
+#if ENABLE_DRAW_DEBUG
+
+	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+	DrawDebugSphere(GetWorld(), Origin, AttackRadius, 16, DrawColor, false, 2.0f);
+
+#endif
 }

@@ -52,10 +52,19 @@ protected:
 	TObjectPtr<class UInputAction> AttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> ZoomIn;
+	TObjectPtr<class UInputAction> QSkillAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UInputAction> ZoomOut;
+	TObjectPtr<class UInputAction> WSkillAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> ESkillAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> ZoomInAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> ZoomOutAction;
 
 // Combo Action Section
 protected:
@@ -77,9 +86,15 @@ protected:
 
 	void ComboCheck();
 
+	bool bIsRotating = false;
+
+	FTimerHandle RotationTimerHandle;
+
+	void StopRotation();
+
 	void RotationToCursor();
 
-	bool bRunCombo = false;
+	bool bIsRunningCombo = false;
 
 	int32 CurrentCombo = 0;
 
@@ -92,6 +107,8 @@ protected:
 	FVector NewDestination;
 
 	void UpdateCircleRing(const FVector Destination);
+
+	void AttackComboHitCheck();
 
 // Item Section
 protected:
@@ -135,4 +152,40 @@ protected:
 	void InputMouseWheelUp();
 
 	void InputMouseWheelDown();
+
+	// Skill Section
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> QSkillMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> WSkillMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> ESkillMontage;
+
+	void QSkillEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	
+	void WSkillEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	
+	void ESkillEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+
+	void InputQButtonPressed();
+	
+	void InputWButtonPressed();
+	
+	void InputEButtonPressed();
+
+	bool bIsRunningQSkill = false;
+	
+	bool bIsRunningWSkill = false;
+	
+	bool bIsRunningESkill = false;
+
+	void AttackQSkillHitCheck();
+	
+	void AttackWSkillHitCheck();
+	
+	void AttackESkillHitCheck();
+
 };
