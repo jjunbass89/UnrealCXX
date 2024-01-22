@@ -28,8 +28,9 @@
 * X 버튼을 누르면 다이얼로그가 사라진다.
 * 카오스 던전 버튼을 누르면 카오스 던전으로 플레이어가 이동한다.
 * 게임 시작 2초 후 랜덤한 위치에 20마리의 몬스터가 맵의 중앙을 바라보며 생성된다. 몬스터를 죽이면 일정 시간 지난 후 전체 몬스터의 수가 20마리가 유지되도록 추가로 랜덤한 위치에 생성된다.
+* 각 몬스터는 랜덤하게 10종의 서로 다른 mesh 와 HP, 공격력을 가진 몬스터중 하나로 생성된다.
 
-    [![video](https://img.youtube.com/vi/z-XlBAySdDg/0.jpg)](https://www.youtube.com/watch?v=z-XlBAySdDg)
+    [![video](https://img.youtube.com/vi/a5wxToobeAw/0.jpg)](https://www.youtube.com/watch?v=a5wxToobeAw)
 
 ## 몬스터
 
