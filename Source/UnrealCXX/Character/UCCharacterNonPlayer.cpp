@@ -11,6 +11,8 @@
 
 AUCCharacterNonPlayer::AUCCharacterNonPlayer()
 {
+	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_UCNPC);
+
 	GetCharacterMovement()->MaxWalkSpeed = 350.f;
 
 	GetMesh()->SetHiddenInGame(true);
@@ -88,7 +90,7 @@ void AUCCharacterNonPlayer::AttackHitCheck()
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
 
 	const float AttackRadius = 60.0f;
-	const float AttackDamage = 10.0f;
+	const float AttackDamage = 1.0f;
 
 	FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
 	FVector End = Start + GetActorForwardVector() * AttackRadius * 2;
