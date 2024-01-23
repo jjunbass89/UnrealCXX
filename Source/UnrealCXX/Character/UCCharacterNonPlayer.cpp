@@ -25,6 +25,12 @@ AUCCharacterNonPlayer::AUCCharacterNonPlayer()
 	{
 		AttackMontage = AttackMontageRef.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HitMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealCXX/Animation/AM_AIHit.AM_AIHit'"));
+	if (HitMontageRef.Object)
+	{
+		HitMontage = HitMontageRef.Object;
+	}
 }
 
 void AUCCharacterNonPlayer::PostInitializeComponents()
@@ -39,6 +45,14 @@ void AUCCharacterNonPlayer::PostInitializeComponents()
 void AUCCharacterNonPlayer::SetDead()
 {
 	Super::SetDead();
+
+	AUCAIController* UCAIController = Cast<AUCAIController>(GetController());
+	if (UCAIController)
+	{
+		UCAIController->StopAI();
+	}
+	
+	bIsDeadAlready = true;
 
 	FTimerHandle DeadTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda(
@@ -84,6 +98,17 @@ void AUCCharacterNonPlayer::NotifyAttackEnd(UAnimMontage* TargetMontage, bool Is
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
+void AUCCharacterNonPlayer::NotifyHitEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded)
+{
+	AUCAIController* UCAIController = Cast<AUCAIController>(GetController());
+	if (UCAIController)
+	{
+		UCAIController->RunAI();
+	}
+
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+}
+
 void AUCCharacterNonPlayer::AttackHitCheck()
 {
 	TSet<AActor*> OutHitActors;
@@ -100,7 +125,7 @@ void AUCCharacterNonPlayer::AttackHitCheck()
 	End += GetActorForwardVector() * AttackRadius;
 	bool HitDetected = GetWorld()->SweepMultiByChannel(OutHitResults, Start, End, FQuat::Identity, CCHANNEL_UCACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
 	if (HitDetected)
-	{
+	{	
 		for (auto OutHitResult : OutHitResults)
 		{
 			APawn* Pawn = Cast<APawn>(OutHitResult.GetActor());
@@ -124,6 +149,33 @@ void AUCCharacterNonPlayer::AttackHitCheck()
 		FDamageEvent DamageEvent;
 		OutHitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
 	}
+}
+
+float AUCCharacterNonPlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	if (!bIsDeadAlready)
+	{
+		// Movement Setting
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+		AUCAIController* UCAIController = Cast<AUCAIController>(GetController());
+		if (UCAIController)
+		{
+			UCAIController->StopAI();
+		}
+
+		// Animation Setting
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		AnimInstance->Montage_Play(HitMontage, 1.0);
+
+		FOnMontageEnded EndDelegate;
+		EndDelegate.BindUObject(this, &AUCCharacterNonPlayer::NotifyHitEnd);
+		AnimInstance->Montage_SetEndDelegate(EndDelegate, HitMontage);
+	}
+
+	return DamageAmount;
 }
 
 float AUCCharacterNonPlayer::GetAIPatrolRadius()

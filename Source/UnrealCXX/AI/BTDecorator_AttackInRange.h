@@ -14,7 +14,7 @@ class UNREALCXX_API UBTDecorator_AttackInRange : public UBTDecorator
 {
 	GENERATED_BODY()
 
-	public:
+public:
 	UBTDecorator_AttackInRange();
 
 protected:

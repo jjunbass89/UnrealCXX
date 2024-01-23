@@ -14,7 +14,7 @@ class UNREALCXX_API UBTService_Detect : public UBTService
 {
 	GENERATED_BODY()
 
-	public:
+public:
 	UBTService_Detect();
 
 protected:

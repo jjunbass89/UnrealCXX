@@ -36,14 +36,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
 	TObjectPtr<class UAnimMontage> AttackMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> HitMontage;
+
 	float AttackSpeedRate = 1.0f;
 
 	void Attack();
 
 	void NotifyAttackEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	
+	void NotifyHitEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
 	virtual void AttackHitCheck() override;
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	bool bIsDeadAlready = false;
 	// AI Section
 protected:
 	virtual float GetAIPatrolRadius() override;
