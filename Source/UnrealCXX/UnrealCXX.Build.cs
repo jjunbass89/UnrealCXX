@@ -10,7 +10,7 @@ public class UnrealCXX : ModuleRules
 
         PublicIncludePaths.AddRange(new string[] { "UnrealCXX" });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NavigationSystem", "AIModule", "UMG" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NavigationSystem", "AIModule", "UMG", "GameplayTasks" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
