@@ -16,4 +16,6 @@ AUCGameMode::AUCGameMode()
 	{
 		PlayerControllerClass = PlayerControllerClassRef.Class;
 	}
+
+	CurrentGameMode = EGameMode::DEFAULT;
 }

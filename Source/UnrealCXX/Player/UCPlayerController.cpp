@@ -18,10 +18,4 @@ void AUCPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	bShowMouseCursor = true;
-	
-	UCHUDWidget = CreateWidget<UUCHUDWidget>(this, UCHUDWidgetClass);
-	if (UCHUDWidget)
-	{
-		UCHUDWidget->AddToViewport();
-	}
 }
