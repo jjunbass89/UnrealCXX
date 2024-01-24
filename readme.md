@@ -33,5 +33,6 @@
     [![video](https://img.youtube.com/vi/a5wxToobeAw/0.jpg)](https://www.youtube.com/watch?v=a5wxToobeAw)
 
 ## 몬스터
-
-    [![video](https://img.youtube.com/vi/sQcRRvCjJl4/0.jpg)](https://www.youtube.com/watch?v=sQcRRvCjJl4)
+* 몬스터와 몬스터, 몬스터와 플레이어 간의 충돌은 무시되나, 서로 공격은 가능하다.
+* 몬스터가 플레이어에게 피격되면 몬스터의 AI 는 일시정지되고, 피격 모션이 진행된 후 다시 움직인다.
+    [![video](https://img.youtube.com/vi/nqZ8dZbYFFs/0.jpg)](https://www.youtube.com/watch?v=nqZ8dZbYFFs)
