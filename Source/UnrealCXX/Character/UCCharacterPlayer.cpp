@@ -17,6 +17,8 @@
 #include "Engine/DamageEvents.h"
 #include "Interface/UCChaosDungeonModeInterface.h"
 #include "GameFramework/GameModeBase.h"
+#include "CharacterStat/UCCharacterStatComponent.h"
+#include "UI/UCWidgetComponent.h"
 
 const float AUCCharacterPlayer::MaxTargetArmLength = 1200.0f;
 const float AUCCharacterPlayer::MinTargetArmLength = 220.0f;
@@ -697,4 +699,22 @@ void AUCCharacterPlayer::AttackESkillHitCheck()
 	DrawDebugSphere(GetWorld(), Origin, AttackRadius, 16, DrawColor, false, 2.0f);
 
 #endif
+}
+
+void AUCCharacterPlayer::Revival()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		EnableInput(PlayerController);
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->StopAllMontages(0.0f);
+
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+	SetActorEnableCollision(true);
+	Stat->Revival();
+	HpBar->SetHiddenInGame(false);
 }

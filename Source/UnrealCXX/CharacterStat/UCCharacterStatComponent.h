@@ -29,6 +29,7 @@ public:
 	FORCEINLINE float GetMaxHp() { return MaxHp; }
 	FORCEINLINE float GetCurrentHp() { return CurrentHp; }
 	float ApplyDamage(float InDamage);
+	void Revival();
 
 protected:
 	void SetHp(float NewHp);

@@ -2,7 +2,17 @@
 
 
 #include "Player/UCChaosDungeonController.h"
+#include "Character/UCCharacterPlayer.h"
 
+
+void AUCChaosDungeonController::K2_Revival()
+{
+	AUCCharacterPlayer* player = Cast<AUCCharacterPlayer>(GetPawn());
+	if (player)
+	{
+		player->Revival();
+	}
+}
 
 void AUCChaosDungeonController::GameScoreChanged(int32 NewScore)
 {

@@ -31,6 +31,11 @@ public:
 public:
 	virtual void AttackHitCheck() override;
 
+
+public:
+	// Revival Section
+	void Revival();
+
 // Camera Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))

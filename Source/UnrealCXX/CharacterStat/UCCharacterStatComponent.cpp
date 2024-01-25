@@ -39,3 +39,8 @@ void UUCCharacterStatComponent::SetHp(float NewHp)
 	
 	OnHpChanged.Broadcast(CurrentHp);
 }
+
+void UUCCharacterStatComponent::Revival()
+{
+	SetHp(MaxHp);
+}

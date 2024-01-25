@@ -22,6 +22,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = Game, Meta = (DisplayName = "OnGameOverCpp"))
 	void K2_OnGameOver();
 
+	UFUNCTION(BlueprintCallable, Category = Game, Meta = (DisplayName = "RevivalCpp"))
+	void K2_Revival();
+
 	void GameScoreChanged(int32 NewScore);
 	void GameClear();
 	void GameOver();	
