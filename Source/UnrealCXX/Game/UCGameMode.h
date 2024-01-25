@@ -4,14 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "Interface/UCGameInterface.h"
 #include "UCGameMode.generated.h"
+
+UENUM(BlueprintType)
+enum class EGameMode : uint8
+{
+	DEFAULT = 0,
+	CHAOS_DUNGEON,
+	GUARDIAN_RAID,
+	TOWER,
+};
 
 /**
  * 
  */
 UCLASS()
-class UNREALCXX_API AUCGameMode : public AGameModeBase, public IUCGameInterface
+class UNREALCXX_API AUCGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
