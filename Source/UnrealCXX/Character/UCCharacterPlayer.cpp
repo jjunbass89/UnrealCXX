@@ -15,6 +15,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Physics/UCCollision.h"
 #include "Engine/DamageEvents.h"
+#include "Interface/UCChaosDungeonModeInterface.h"
+#include "GameFramework/GameModeBase.h"
 
 const float AUCCharacterPlayer::MaxTargetArmLength = 1200.0f;
 const float AUCCharacterPlayer::MinTargetArmLength = 220.0f;
@@ -167,6 +169,12 @@ void AUCCharacterPlayer::SetDead()
 	if (PlayerController)
 	{
 		DisableInput(PlayerController);
+		
+		IUCChaosDungeonModeInterface* UCChaosDungeonMode = Cast<IUCChaosDungeonModeInterface>(GetWorld()->GetAuthGameMode());
+		if (UCChaosDungeonMode)
+		{
+			UCChaosDungeonMode->OnPlayerDead();
+		}
 	}
 }
 

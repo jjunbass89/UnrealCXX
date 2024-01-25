@@ -4,6 +4,8 @@
 #include "Gimmick/UCChaosDungeonGimmick.h"
 #include "Character/UCCharacterNonPlayer.h"
 #include "Kismet/GameplayStatics.h"
+#include "Interface/UCChaosDungeonModeInterface.h"
+#include "GameFramework/GameModeBase.h"
 
 // Sets default values
 AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
@@ -23,20 +25,8 @@ void AUCChaosDungeonGimmick::BeginPlay()
 {
 	Super::BeginPlay();
 
+	bInitOpponents = true;
 	GetWorld()->GetTimerManager().SetTimer(OpponentsSpawnTimerHandle, this, &AUCChaosDungeonGimmick::OnOpponentsSpawn, OpponentSpawnTime, false);
-}
-
-void AUCChaosDungeonGimmick::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-	
-	TArray<AActor*> arrOutActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, arrOutActors);
-	if (bDoneSpawnOpponents && arrOutActors.Num() != MaxCurrentOponetsNum)
-	{
-		bDoneSpawnOpponents = false;
-		OnOpponentsSpawn();
-	}
 }
 
 // 6 | 5 | 4 
@@ -80,13 +70,37 @@ FVector AUCChaosDungeonGimmick::CalcRandomLocation()
 	return Location;
 }
 
+void AUCChaosDungeonGimmick::OnOpponentDestroyed(AActor* DestroyedActor)
+{
+	TArray<AActor*> arrOutActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, arrOutActors);
+	if (bDoneSpawnOpponents && arrOutActors.Num() != MaxCurrentOponetsNum)
+	{
+		bDoneSpawnOpponents = false;
+		OnOpponentsSpawn();
+	}
+}
+
 void AUCChaosDungeonGimmick::OnOpponentsSpawn()
 {
 	TArray<AActor*> arrOutActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, arrOutActors);
 	
 	int32 NumNeedToSpawn = MaxCurrentOponetsNum - arrOutActors.Num();
-	TotalKillCount += NumNeedToSpawn;
+	IUCChaosDungeonModeInterface* UCChaosDungeonMode = Cast<IUCChaosDungeonModeInterface>(GetWorld()->GetAuthGameMode());
+	if (!bInitOpponents && UCChaosDungeonMode)
+	{
+		UCChaosDungeonMode->OnPlayerScoreChanged(NumNeedToSpawn);
+		if (UCChaosDungeonMode->IsGameCleared())
+		{
+			for (auto arrOutActor : arrOutActors)
+			{
+				arrOutActor->Destroy();
+			}
+			
+			return;
+		}
+	}
 
 	for (size_t i = 0; i < NumNeedToSpawn; i++)
 	{
@@ -94,11 +108,22 @@ void AUCChaosDungeonGimmick::OnOpponentsSpawn()
 	}
 
 	bDoneSpawnOpponents = true;
+
+	if (bInitOpponents)
+	{
+		bInitOpponents = false;
+	}
 }
 
 void AUCChaosDungeonGimmick::OnOpponentSpawn()
 {
 	const FVector SpawnLocation = CalcRandomLocation();
 	const FRotator SpawnRotator = FVector(-SpawnLocation.X, -SpawnLocation.Y, 0.0f).Rotation();
-	GetWorld()->SpawnActor(OpponentClass, &SpawnLocation, &SpawnRotator);
+	const FTransform SpawnTransform(SpawnRotator, SpawnLocation);
+	AUCCharacterNonPlayer* UCOpponentCharacter = GetWorld()->SpawnActorDeferred<AUCCharacterNonPlayer>(OpponentClass, SpawnTransform);
+	if (UCOpponentCharacter)
+	{
+		UCOpponentCharacter->OnDestroyed.AddDynamic(this, &AUCChaosDungeonGimmick::OnOpponentDestroyed);
+		UCOpponentCharacter->FinishSpawning(SpawnTransform);
+	}
 }

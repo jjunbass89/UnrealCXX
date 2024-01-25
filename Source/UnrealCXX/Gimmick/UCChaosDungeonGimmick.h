@@ -20,8 +20,6 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void Tick(float DeltaSeconds) override;
-
 	// Fight Section
 protected:
 	UPROPERTY(EditAnywhere, Category = Fight, Meta = (AllowPrivateAccess = "true"))
@@ -32,6 +30,9 @@ protected:
 
 	FTimerHandle OpponentsSpawnTimerHandle;
 	
+	UFUNCTION()
+	void OnOpponentDestroyed(AActor* DestroyedActor);
+
 	void OnOpponentsSpawn();
 	
 	void OnOpponentSpawn();
@@ -39,12 +40,8 @@ protected:
 	FVector CalcRandomLocation();
 
 	bool bDoneSpawnOpponents = false;
-
-	int32 GoalKillCount = 100;
 	
-	int32 MaxKillCount = 120;
+	bool bInitOpponents = false;
 
-	int32 TotalKillCount = 0;
-	
 	int32 MaxCurrentOponetsNum = 20;
 };
