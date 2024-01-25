@@ -35,7 +35,11 @@
 * 몬스터를 150마리 죽일 때까지 좌측 상단에 퍼센트가 업데이트되며, 100퍼센트 달성 시 중앙에 성공 문구가 뜬다.
 * 좌측 상단에 "나가기" 버튼을 누르면 초기 레벨로 돌아가게 된다.
 
+    [![video](https://img.youtube.com/vi/k9qFeridOag/0.jpg)](https://www.youtube.com/watch?v=k9qFeridOag)
+
 * 몬스터에게 죽임을 당하면 우측 상단에 즉시 부활 버튼이 나타나고 누르게 되면 죽은 자리에서 부활한다.
+
+    [![video](https://img.youtube.com/vi/HSrrezgxXWs/0.jpg)](https://www.youtube.com/watch?v=HSrrezgxXWs)
 
 ## 몬스터
 * 몬스터와 몬스터, 몬스터와 플레이어 간의 충돌은 무시되나, 서로 공격은 가능하다.
