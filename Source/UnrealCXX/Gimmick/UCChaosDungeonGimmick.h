@@ -15,17 +15,15 @@ public:
 	// Sets default values for this actor's properties
 	AUCChaosDungeonGimmick();
 
-	// Level Section
+// Level Section
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Level)
+	UPROPERTY(EditAnywhere, Category = Level, Meta = (AllowPrivateAccess = "true"))
 	int32 MaxLevel;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Level)
+	UPROPERTY(EditAnywhere, Category = Level, Meta = (AllowPrivateAccess = "true"))
 	int32 MinLevel;
 
 protected:
-	virtual void OnConstruction(const FTransform& Transform) override;
-
 	virtual void BeginPlay() override;
 
 	// Fight Section

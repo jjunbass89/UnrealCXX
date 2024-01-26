@@ -30,4 +30,11 @@ public:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Game)
 	uint8 bIsCleared : 1;	
+
+	// Interaction section
+public:
+	virtual void OnInteraction() override;
+	virtual void SetPortalActivate(bool bIsActivated) override;
+
+	bool bIsPortalActivated = false;
 };

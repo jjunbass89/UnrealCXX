@@ -31,9 +31,6 @@ AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
 		Portal->bAutoActivate = false;
 	}
 
-	MaxLevel = 2;
-	MinLevel = 1;
-
 	PortalTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PortalTrigger"));
 	PortalTrigger->SetBoxExtent(FVector(120.0f, 120.0f, 150.0f));
 	PortalTrigger->SetupAttachment(RootComponent);
@@ -54,11 +51,6 @@ AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
 		PortalTxt->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		PortalTxt->SetHiddenInGame(true);
 	}
-}
-
-void AUCChaosDungeonGimmick::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
 }
 
 void AUCChaosDungeonGimmick::BeginPlay()
@@ -114,12 +106,22 @@ void AUCChaosDungeonGimmick::OnPortalTriggerBeginOverlap(UPrimitiveComponent* Ov
 {
 	bIsPortalOverlaped = true;
 	PortalTxt->SetHiddenInGame(!bIsPortalOverlaped);
+	IUCChaosDungeonModeInterface* UCChaosDungeonMode = Cast<IUCChaosDungeonModeInterface>(GetWorld()->GetAuthGameMode());
+	if (UCChaosDungeonMode)
+	{
+		UCChaosDungeonMode->SetPortalActivate(bIsPortalOverlaped);
+	}
 }
 
 void AUCChaosDungeonGimmick::OnPortalTriggerEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	bIsPortalOverlaped = false;
 	PortalTxt->SetHiddenInGame(!bIsPortalOverlaped);
+	IUCChaosDungeonModeInterface* UCChaosDungeonMode = Cast<IUCChaosDungeonModeInterface>(GetWorld()->GetAuthGameMode());
+	if (UCChaosDungeonMode)
+	{
+		UCChaosDungeonMode->SetPortalActivate(bIsPortalOverlaped);
+	}
 }
 
 void AUCChaosDungeonGimmick::OnOpponentDestroyed(AActor* DestroyedActor)

@@ -25,4 +25,9 @@ public:
 	virtual void OnPlayerScoreChanged(int32 NewPlayerScore) = 0;
 	virtual void OnPlayerDead() = 0;
 	virtual bool IsGameCleared() = 0;
+
+	// Interaction section
+public:
+	virtual void OnInteraction() = 0;
+	virtual void SetPortalActivate(bool bIsActivated) = 0;
 };

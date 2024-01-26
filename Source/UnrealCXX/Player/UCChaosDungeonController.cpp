@@ -4,7 +4,6 @@
 #include "Player/UCChaosDungeonController.h"
 #include "Character/UCCharacterPlayer.h"
 
-
 void AUCChaosDungeonController::K2_Revival()
 {
 	AUCCharacterPlayer* player = Cast<AUCCharacterPlayer>(GetPawn());
@@ -27,4 +26,9 @@ void AUCChaosDungeonController::GameClear()
 void AUCChaosDungeonController::GameOver()
 {
 	K2_OnGameOver();
+}
+
+void AUCChaosDungeonController::EnterPortal()
+{
+	K2_OnEnterPortal();
 }

@@ -73,6 +73,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UInputAction> ZoomOutAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UInputAction> InteractionAction;
+
 // Combo Action Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
@@ -195,4 +198,7 @@ protected:
 	
 	void AttackESkillHitCheck();
 
+	// Interaction Section
+protected:
+	void InputGButtonPressed();
 };

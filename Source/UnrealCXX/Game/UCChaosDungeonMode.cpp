@@ -60,3 +60,18 @@ bool AUCChaosDungeonMode::IsGameCleared()
 {
 	return bIsCleared;
 }
+
+void AUCChaosDungeonMode::OnInteraction()
+{
+	AUCChaosDungeonController* UCChaosDungeonController = Cast<AUCChaosDungeonController>(GetWorld()->GetFirstPlayerController());
+	if (UCChaosDungeonController && bIsPortalActivated)
+	{
+		UCChaosDungeonController->EnterPortal();
+		// SetPrevChaosDungeonScore : game instance
+	}
+}
+
+void AUCChaosDungeonMode::SetPortalActivate(bool bIsActivated)
+{
+	bIsPortalActivated = bIsActivated;
+}

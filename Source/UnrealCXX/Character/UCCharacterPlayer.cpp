@@ -99,6 +99,12 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 		ZoomOutAction = InputZoomOutRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputInteractionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/UnrealCXX/Input/Actions/IA_Interaction.IA_Interaction'"));
+	if (nullptr != InputInteractionRef.Object)
+	{
+		InteractionAction = InputInteractionRef.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> ComboActionMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/UnrealCXX/Animation/AM_ComboAttack.AM_ComboAttack'"));
 	if (ComboActionMontageRef.Object)
 	{
@@ -195,6 +201,7 @@ void AUCCharacterPlayer::SetupPlayerInputComponent(class UInputComponent* Player
 	EnhancedInputComponent->BindAction(ESkillAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputEButtonPressed);
 	EnhancedInputComponent->BindAction(ZoomInAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputMouseWheelUp);
 	EnhancedInputComponent->BindAction(ZoomOutAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputMouseWheelDown);
+	EnhancedInputComponent->BindAction(InteractionAction, ETriggerEvent::Started, this, &AUCCharacterPlayer::InputGButtonPressed);
 }
 
 void AUCCharacterPlayer::Tick(float DeltaTime)
@@ -699,6 +706,15 @@ void AUCCharacterPlayer::AttackESkillHitCheck()
 	DrawDebugSphere(GetWorld(), Origin, AttackRadius, 16, DrawColor, false, 2.0f);
 
 #endif
+}
+
+void AUCCharacterPlayer::InputGButtonPressed()
+{
+	IUCChaosDungeonModeInterface* UCChaosDungeonMode = Cast<IUCChaosDungeonModeInterface>(GetWorld()->GetAuthGameMode());
+	if (UCChaosDungeonMode)
+	{
+		UCChaosDungeonMode->OnInteraction();
+	}
 }
 
 void AUCCharacterPlayer::Revival()

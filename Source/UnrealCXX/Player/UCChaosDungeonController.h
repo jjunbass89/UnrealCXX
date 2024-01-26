@@ -28,4 +28,11 @@ public:
 	void GameScoreChanged(int32 NewScore);
 	void GameClear();
 	void GameOver();	
+
+	// Interaction section
+public:
+	UFUNCTION(BlueprintImplementableEvent, Category = Portal, Meta = (DisplayName = "OnEnterPortalCpp"))
+	void K2_OnEnterPortal();
+	
+	void EnterPortal();
 };
