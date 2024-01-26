@@ -7,6 +7,9 @@
 #include "Interface/UCChaosDungeonModeInterface.h"
 #include "GameFramework/GameModeBase.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Components/BoxComponent.h"
+#include "Physics/UCCollision.h"
+#include "UI/UCWidgetComponent.h"
 
 // Sets default values
 AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
@@ -30,6 +33,27 @@ AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
 
 	MaxLevel = 2;
 	MinLevel = 1;
+
+	PortalTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("PortalTrigger"));
+	PortalTrigger->SetBoxExtent(FVector(120.0f, 120.0f, 150.0f));
+	PortalTrigger->SetupAttachment(RootComponent);
+	PortalTrigger->SetRelativeLocation(FVector(0.0f, 0.0f, 275.0f));
+	PortalTrigger->SetCollisionProfileName(TEXT("NoCollision"));
+	PortalTrigger->OnComponentBeginOverlap.AddDynamic(this, &AUCChaosDungeonGimmick::OnPortalTriggerBeginOverlap);
+	PortalTrigger->OnComponentEndOverlap.AddDynamic(this, &AUCChaosDungeonGimmick::OnPortalTriggerEndOverlap);
+
+	PortalTxt = CreateDefaultSubobject<UUCWidgetComponent>(TEXT("PortalTxt"));
+	PortalTxt->SetupAttachment(Portal);
+	PortalTxt->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+	static ConstructorHelpers::FClassFinder<UUserWidget> PortalTxtRef(TEXT("/Game/UnrealCXX/UI/WBP_PortalTxt.WBP_PortalTxt_C"));
+	if (PortalTxtRef.Class)
+	{
+		PortalTxt->SetWidgetClass(PortalTxtRef.Class);
+		PortalTxt->SetWidgetSpace(EWidgetSpace::Screen);
+		PortalTxt->SetDrawSize(FVector2D(100.0f, 100.0f));
+		PortalTxt->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		PortalTxt->SetHiddenInGame(true);
+	}
 }
 
 void AUCChaosDungeonGimmick::OnConstruction(const FTransform& Transform)
@@ -86,6 +110,18 @@ FVector AUCChaosDungeonGimmick::CalcRandomLocation()
 	return Location;
 }
 
+void AUCChaosDungeonGimmick::OnPortalTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	bIsPortalOverlaped = true;
+	PortalTxt->SetHiddenInGame(!bIsPortalOverlaped);
+}
+
+void AUCChaosDungeonGimmick::OnPortalTriggerEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	bIsPortalOverlaped = false;
+	PortalTxt->SetHiddenInGame(!bIsPortalOverlaped);
+}
+
 void AUCChaosDungeonGimmick::OnOpponentDestroyed(AActor* DestroyedActor)
 {
 	TArray<AActor*> arrOutActors;
@@ -131,6 +167,7 @@ void AUCChaosDungeonGimmick::OnOpponentsSpawn()
 	if (TotalDeadOpponetsNum >= DeadOpponetsNumForPortal)
 	{
 		Portal->Activate(true);
+		PortalTrigger->SetCollisionProfileName(CPROFILE_UCTRIGGER);
 	}
 
 	bDoneSpawnOpponents = true;

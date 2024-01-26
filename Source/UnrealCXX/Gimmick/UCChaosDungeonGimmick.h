@@ -63,5 +63,18 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Portal)
 	TObjectPtr<class UParticleSystemComponent> Portal;	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Portal, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UBoxComponent> PortalTrigger;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Portal, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UWidgetComponent> PortalTxt;
+
+	UFUNCTION()
+	void OnPortalTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnPortalTriggerEndOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	bool bIsPortalOverlaped = false;
 };
