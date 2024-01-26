@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Interface/UCChaosDungeonModeInterface.h"
 #include "GameFramework/GameModeBase.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
@@ -14,6 +15,18 @@ AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
 
 	OpponentSpawnTime = 2.0f;
 	OpponentClass = AUCCharacterNonPlayer::StaticClass();
+
+	Portal = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Portal"));
+	Portal->SetupAttachment(RootComponent);
+	Portal->SetRelativeScale3D(FVector(2.0f, 2.0f, 2.0f));
+	Portal->SetRelativeLocation(FVector(0.0f, 0.0f, 150.0f));
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> PortalRef(TEXT("/Script/Engine.ParticleSystem'/Game/InfinityBladeEffects/Effects/FX_Ability/Summon/P_Summon_Portal.P_Summon_Portal'"));
+	if (PortalRef.Object)
+	{
+		Portal->SetTemplate(PortalRef.Object);
+		Portal->bAutoActivate = false;
+	}
 }
 
 void AUCChaosDungeonGimmick::OnConstruction(const FTransform& Transform)

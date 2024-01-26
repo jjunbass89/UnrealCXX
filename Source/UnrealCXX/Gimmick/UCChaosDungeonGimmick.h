@@ -44,4 +44,9 @@ protected:
 	bool bInitOpponents = false;
 
 	int32 MaxCurrentOponetsNum = 20;
+
+	// Portal Section
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Portal)
+	TObjectPtr<class UParticleSystemComponent> Portal;	
 };
