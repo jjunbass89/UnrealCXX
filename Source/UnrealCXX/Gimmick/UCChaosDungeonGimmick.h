@@ -15,6 +15,14 @@ public:
 	// Sets default values for this actor's properties
 	AUCChaosDungeonGimmick();
 
+	// Level Section
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Level)
+	int32 MaxLevel;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Level)
+	int32 MinLevel;
+
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
@@ -43,10 +51,17 @@ protected:
 	
 	bool bInitOpponents = false;
 
-	int32 MaxCurrentOponetsNum = 20;
+	int32 MaxCurrentOpponetsNum = 20;
+	
+	int32 MaxTotalDeadOpponetsNum = 50;
+	
+	int32 DeadOpponetsNumForPortal = 35;
+	
+	int32 TotalDeadOpponetsNum = 0;
 
 	// Portal Section
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Portal)
 	TObjectPtr<class UParticleSystemComponent> Portal;	
+	
 };

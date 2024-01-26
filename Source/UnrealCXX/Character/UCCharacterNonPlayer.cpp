@@ -37,8 +37,9 @@ void AUCCharacterNonPlayer::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	ensure(NPCMeshes.Num() > 0);
-	int32 RandIndex = FMath::RandRange(0, NPCMeshes.Num() - 1);
+	ensure(MinLevel > 0);
+	ensure(MaxLevel > 0);
+	int32 RandIndex = FMath::RandRange(MinLevel - 1, MaxLevel - 1);
 	NPCMeshHandle = UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(NPCMeshes[RandIndex], FStreamableDelegate::CreateUObject(this, &AUCCharacterNonPlayer::NPCMeshLoadCompleted));
 }
 

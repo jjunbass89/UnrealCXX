@@ -19,6 +19,13 @@ class UNREALCXX_API AUCCharacterNonPlayer : public AUCCharacterBase, public IUCC
 public:
 	AUCCharacterNonPlayer();
 
+public:
+	FORCEINLINE void SetMaxLevel(int32 NewMaxLevel) { MaxLevel = NewMaxLevel; }
+	FORCEINLINE void SetMinLevel(int32 NewMinLevel) { MinLevel = NewMinLevel; }
+
+	int32 MaxLevel = 10;
+	int32 MinLevel = 1;
+
 protected:
 	virtual void PostInitializeComponents() override;
 
@@ -52,6 +59,7 @@ protected:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	bool bIsDeadAlready = false;
+
 	// AI Section
 protected:
 	virtual float GetAIPatrolRadius() override;

@@ -27,6 +27,9 @@ AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
 		Portal->SetTemplate(PortalRef.Object);
 		Portal->bAutoActivate = false;
 	}
+
+	MaxLevel = 2;
+	MinLevel = 1;
 }
 
 void AUCChaosDungeonGimmick::OnConstruction(const FTransform& Transform)
@@ -87,7 +90,8 @@ void AUCChaosDungeonGimmick::OnOpponentDestroyed(AActor* DestroyedActor)
 {
 	TArray<AActor*> arrOutActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, arrOutActors);
-	if (bDoneSpawnOpponents && arrOutActors.Num() != MaxCurrentOponetsNum)
+	if (bDoneSpawnOpponents && 
+		arrOutActors.Num() != MaxCurrentOpponetsNum)
 	{
 		bDoneSpawnOpponents = false;
 		OnOpponentsSpawn();
@@ -99,11 +103,15 @@ void AUCChaosDungeonGimmick::OnOpponentsSpawn()
 	TArray<AActor*> arrOutActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, arrOutActors);
 	
-	int32 NumNeedToSpawn = MaxCurrentOponetsNum - arrOutActors.Num();
+	const int32 DeadNum = bInitOpponents ? 0 : MaxCurrentOpponetsNum - arrOutActors.Num();
+	TotalDeadOpponetsNum += DeadNum;
+	MaxCurrentOpponetsNum = FMath::Min(MaxCurrentOpponetsNum, MaxTotalDeadOpponetsNum - TotalDeadOpponetsNum);
+
+	const int32 NumNeedToSpawn = MaxCurrentOpponetsNum - arrOutActors.Num();
 	IUCChaosDungeonModeInterface* UCChaosDungeonMode = Cast<IUCChaosDungeonModeInterface>(GetWorld()->GetAuthGameMode());
 	if (!bInitOpponents && UCChaosDungeonMode)
 	{
-		UCChaosDungeonMode->OnPlayerScoreChanged(NumNeedToSpawn);
+		UCChaosDungeonMode->OnPlayerScoreChanged(DeadNum);
 		if (UCChaosDungeonMode->IsGameCleared())
 		{
 			for (auto arrOutActor : arrOutActors)
@@ -118,6 +126,11 @@ void AUCChaosDungeonGimmick::OnOpponentsSpawn()
 	for (size_t i = 0; i < NumNeedToSpawn; i++)
 	{
 		OnOpponentSpawn();
+	}
+
+	if (TotalDeadOpponetsNum >= DeadOpponetsNumForPortal)
+	{
+		Portal->Activate(true);
 	}
 
 	bDoneSpawnOpponents = true;
@@ -136,6 +149,8 @@ void AUCChaosDungeonGimmick::OnOpponentSpawn()
 	AUCCharacterNonPlayer* UCOpponentCharacter = GetWorld()->SpawnActorDeferred<AUCCharacterNonPlayer>(OpponentClass, SpawnTransform);
 	if (UCOpponentCharacter)
 	{
+		UCOpponentCharacter->SetMaxLevel(MaxLevel);
+		UCOpponentCharacter->SetMinLevel(MinLevel);
 		UCOpponentCharacter->OnDestroyed.AddDynamic(this, &AUCChaosDungeonGimmick::OnOpponentDestroyed);
 		UCOpponentCharacter->FinishSpawning(SpawnTransform);
 	}
