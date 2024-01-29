@@ -20,5 +20,13 @@ public:
 
 	virtual int32 GetChaosDungeonScore() override;
 
+	virtual void InitializeChaosDungeonStage() override;
+
+	virtual void IncreaseChaosDungeonStage() override;
+
+	virtual int32 GetChaosDungeonStage() override;
+
 	int32 ChaosDungeonScore = 0;
+	
+	int32 ChaosDungeonStage = -1;
 };

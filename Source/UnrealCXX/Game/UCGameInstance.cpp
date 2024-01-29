@@ -12,3 +12,18 @@ int32 UUCGameInstance::GetChaosDungeonScore()
 {
 	return ChaosDungeonScore;
 }
+
+void UUCGameInstance::InitializeChaosDungeonStage()
+{
+	ChaosDungeonStage = -1;
+}
+
+void UUCGameInstance::IncreaseChaosDungeonStage()
+{
+	ChaosDungeonStage++;
+}
+
+int32 UUCGameInstance::GetChaosDungeonStage()
+{
+	return ChaosDungeonStage;
+}

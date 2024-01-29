@@ -25,4 +25,10 @@ public:
 	virtual void UpdateChaosDungeonScore(int32 NewScore) = 0;
 	
 	virtual int32 GetChaosDungeonScore() = 0;
+
+	virtual void InitializeChaosDungeonStage() = 0;
+
+	virtual void IncreaseChaosDungeonStage() = 0;
+
+	virtual int32 GetChaosDungeonStage() = 0;
 };

@@ -3,6 +3,7 @@
 
 #include "Player/UCChaosDungeonController.h"
 #include "Character/UCCharacterPlayer.h"
+#include "Interface/UCChaosDungeonGameInterface.h"
 
 void AUCChaosDungeonController::K2_Revival()
 {
@@ -11,6 +12,17 @@ void AUCChaosDungeonController::K2_Revival()
 	{
 		player->Revival();
 	}
+}
+
+int32 AUCChaosDungeonController::K2_GetStage()
+{
+	IUCChaosDungeonGameInterface* ChaosDungeonGameInterface = Cast<IUCChaosDungeonGameInterface>(GetGameInstance());
+	if (ChaosDungeonGameInterface)
+	{
+		return ChaosDungeonGameInterface->GetChaosDungeonStage();
+	}
+
+	return int32();
 }
 
 void AUCChaosDungeonController::GameScoreChanged(int32 NewScore)

@@ -29,5 +29,6 @@ void AUCGameMode::BeginPlay()
 	if (CurrentGameMode == EGameMode::DEFAULT && ChaosDungeonGameInterface)
 	{
 		ChaosDungeonGameInterface->UpdateChaosDungeonScore(0);
+		ChaosDungeonGameInterface->InitializeChaosDungeonStage();
 	}
 }

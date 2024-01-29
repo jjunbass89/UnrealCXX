@@ -25,6 +25,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Game, Meta = (DisplayName = "RevivalCpp"))
 	void K2_Revival();
 
+	UFUNCTION(BlueprintCallable, Category = Game, Meta = (DisplayName = "GetStageCpp"))
+	int32 K2_GetStage();
+
 	void GameScoreChanged(int32 NewScore);
 	void GameClear();
 	void GameOver();	

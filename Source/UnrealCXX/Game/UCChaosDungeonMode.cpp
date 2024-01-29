@@ -36,6 +36,7 @@ void AUCChaosDungeonMode::Tick(float DeltaTime)
 		if (ChaosDungeonGameInterface)
 		{
 			OnPlayerScoreChanged(ChaosDungeonGameInterface->GetChaosDungeonScore());
+			ChaosDungeonGameInterface->IncreaseChaosDungeonStage();
 		}
 	}
 }
