@@ -26,6 +26,8 @@ class UNREALCXX_API AUCGameMode : public AGameModeBase
 public:
 	AUCGameMode();
 
+	virtual void BeginPlay() override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Game)
 	EGameMode CurrentGameMode;
 };

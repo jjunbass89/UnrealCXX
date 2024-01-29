@@ -3,9 +3,13 @@
 
 #include "Game/UCChaosDungeonMode.h"
 #include "Player/UCChaosDungeonController.h"
+#include "Interface/UCChaosDungeonGameInterface.h"
 
 AUCChaosDungeonMode::AUCChaosDungeonMode()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
+
 	static ConstructorHelpers::FClassFinder<APawn> DefaultPawnClassRef(TEXT("/Game/UnrealCXX/Blueprint/BP_UCCharacterPlayer.BP_UCCharacterPlayer_C"));
 	if (DefaultPawnClassRef.Class)
 	{
@@ -19,10 +23,21 @@ AUCChaosDungeonMode::AUCChaosDungeonMode()
 	}
 
 	CurrentGameMode = EGameMode::CHAOS_DUNGEON;
+}
 
-	ClearScore = 150;
-	CurrentScore = 0;
-	bIsCleared = false;
+void AUCChaosDungeonMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (!bIsInitialized)
+	{
+		bIsInitialized = true;
+
+		IUCChaosDungeonGameInterface* ChaosDungeonGameInterface = Cast<IUCChaosDungeonGameInterface>(GetGameInstance());
+		if (ChaosDungeonGameInterface)
+		{
+			OnPlayerScoreChanged(ChaosDungeonGameInterface->GetChaosDungeonScore());
+		}
+	}
 }
 
 void AUCChaosDungeonMode::OnPlayerScoreChanged(int32 NewPlayerScore)
@@ -66,8 +81,13 @@ void AUCChaosDungeonMode::OnInteraction()
 	AUCChaosDungeonController* UCChaosDungeonController = Cast<AUCChaosDungeonController>(GetWorld()->GetFirstPlayerController());
 	if (UCChaosDungeonController && bIsPortalActivated)
 	{
+		IUCChaosDungeonGameInterface* ChaosDungeonGameInterface = Cast<IUCChaosDungeonGameInterface>(GetGameInstance());
+		if (ChaosDungeonGameInterface)
+		{
+			ChaosDungeonGameInterface->UpdateChaosDungeonScore(CurrentScore);
+		}
+
 		UCChaosDungeonController->EnterPortal();
-		// SetPrevChaosDungeonScore : game instance
 	}
 }
 

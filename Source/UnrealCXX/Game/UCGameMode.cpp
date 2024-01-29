@@ -2,6 +2,7 @@
 
 
 #include "Game/UCGameMode.h"
+#include "Interface/UCChaosDungeonGameInterface.h"
 
 AUCGameMode::AUCGameMode()
 {
@@ -18,4 +19,15 @@ AUCGameMode::AUCGameMode()
 	}
 
 	CurrentGameMode = EGameMode::DEFAULT;
+}
+
+void AUCGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	IUCChaosDungeonGameInterface* ChaosDungeonGameInterface = Cast<IUCChaosDungeonGameInterface>(GetGameInstance());
+	if (CurrentGameMode == EGameMode::DEFAULT && ChaosDungeonGameInterface)
+	{
+		ChaosDungeonGameInterface->UpdateChaosDungeonScore(0);
+	}
 }

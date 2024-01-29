@@ -18,18 +18,19 @@ class UNREALCXX_API AUCChaosDungeonMode : public AUCGameMode, public IUCChaosDun
 public:
 	AUCChaosDungeonMode();
 
+	virtual void Tick(float DeltaTime) override;
 	virtual void OnPlayerScoreChanged(int32 NewPlayerScore) override;
 	virtual void OnPlayerDead() override;
 	virtual bool IsGameCleared() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
-	int32 ClearScore;
+	int32 ClearScore = 150;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Game)
-	int32 CurrentScore;
+	int32 CurrentScore = 0;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Game)
-	uint8 bIsCleared : 1;	
+	uint8 bIsCleared : 1 = false;	
 
 	// Interaction section
 public:
@@ -37,4 +38,6 @@ public:
 	virtual void SetPortalActivate(bool bIsActivated) override;
 
 	bool bIsPortalActivated = false;
+
+	bool bIsInitialized = false;
 };
