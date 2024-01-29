@@ -46,3 +46,8 @@
 * 몬스터가 플레이어에게 피격되면 몬스터의 AI 는 일시정지되고, 피격 모션이 진행된 후 다시 움직인다.
 
     [![video](https://img.youtube.com/vi/nqZ8dZbYFFs/0.jpg)](https://www.youtube.com/watch?v=nqZ8dZbYFFs)
+
+## 상호작용
+* 던전의 첫 번째, 두 번째 stage 에서 각각 몬스터를 35마리 이상 잡으면 맵 중앙에 포탈이 생성되고, 포탈에 가까워지면 G 키를 누르라는 지시가 나온다. 이때 G 키를 누르면 그다음 stage 로 넘어가게 된다.    
+
+    [![video](https://img.youtube.com/vi/5LQDUkkm6E4/0.jpg)](https://www.youtube.com/watch?v=5LQDUkkm6E4)
