@@ -14,8 +14,6 @@
 // Sets default values
 AUCChaosDungeonGimmick::AUCChaosDungeonGimmick()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 	OpponentSpawnTime = 2.0f;
 	OpponentClass = AUCCharacterNonPlayer::StaticClass();
 
