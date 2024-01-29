@@ -88,12 +88,18 @@ void AUCChaosDungeonLastGimmick::OnOpponentDestroyed(AActor* DestroyedActor)
 		UCChaosDungeonMode->OnPlayerScoreChanged(1);
 		if (UCChaosDungeonMode->IsGameCleared())
 		{
-			TArray<AActor*> arrOutActors;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, arrOutActors);
-
-			for (auto arrOutActor : arrOutActors)
+			TArray<AActor*> ArrOutOpponents;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), OpponentClass, ArrOutOpponents);
+			for (auto Opponent : ArrOutOpponents)
 			{
-				arrOutActor->Destroy();
+				Opponent->Destroy();
+			}
+
+			TArray<AActor*> ArrOutBoxs;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), BoxClass, ArrOutBoxs);
+			for (auto Box : ArrOutBoxs)
+			{
+				Box->Destroy();
 			}
 
 			return;
