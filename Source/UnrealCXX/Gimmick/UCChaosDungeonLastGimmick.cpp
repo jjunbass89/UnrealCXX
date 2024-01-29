@@ -141,6 +141,13 @@ void AUCChaosDungeonLastGimmick::OnOpponentDestroyed(AActor* DestroyedActor)
 
 void AUCChaosDungeonLastGimmick::OnBoxDestroyed(AActor* DestroyedActor)
 {
+	IUCChaosDungeonModeInterface* UCChaosDungeonMode = Cast<IUCChaosDungeonModeInterface>(GetWorld()->GetAuthGameMode());
+	if (UCChaosDungeonMode)
+	{
+		if (UCChaosDungeonMode->IsGameCleared())
+			return;
+	}
+
 	OnOpponentsSpawn();
 }
 

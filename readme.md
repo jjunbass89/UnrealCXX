@@ -51,3 +51,7 @@
 * 던전의 첫 번째, 두 번째 stage 에서 각각 몬스터를 35마리 이상 잡으면 맵 중앙에 포탈이 생성되고, 포탈에 가까워지면 G 키를 누르라는 지시가 나온다. 이때 G 키를 누르면 그다음 stage 로 넘어가게 된다.    
 
     [![video](https://img.youtube.com/vi/5LQDUkkm6E4/0.jpg)](https://www.youtube.com/watch?v=5LQDUkkm6E4)
+
+* 세 번째 stage 에서 각각 몬스터를 20마리 이상 잡으면 맵의 특정 위치에 상자가 생성되고, 상자를 공격하여 부시면 그 주변에 몬스터가 추가로 30마리가 나타난다. 상자는 최대 3개까지 생성된다.
+
+    [![video](https://img.youtube.com/vi/2xaxJhUG66w/0.jpg)](https://www.youtube.com/watch?v=2xaxJhUG66w)

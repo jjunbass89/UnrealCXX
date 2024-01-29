@@ -4,6 +4,7 @@
 #include "Player/UCChaosDungeonController.h"
 #include "Character/UCCharacterPlayer.h"
 #include "Interface/UCChaosDungeonGameInterface.h"
+#include "Kismet/GameplayStatics.h"
 
 void AUCChaosDungeonController::K2_Revival()
 {
@@ -42,5 +43,19 @@ void AUCChaosDungeonController::GameOver()
 
 void AUCChaosDungeonController::EnterPortal()
 {
-	K2_OnEnterPortal();
+	IUCChaosDungeonGameInterface* ChaosDungeonGameInterface = Cast<IUCChaosDungeonGameInterface>(GetGameInstance());
+	if (ChaosDungeonGameInterface)
+	{
+		int32 stage = ChaosDungeonGameInterface->GetChaosDungeonStage();
+		switch (stage)
+		{
+		case 0:
+			UGameplayStatics::OpenLevel(this, "ChaosDungeon1");
+			break;
+
+		case 1:
+			UGameplayStatics::OpenLevel(this, "ChaosDungeon2");
+			break;
+		}
+	}
 }
