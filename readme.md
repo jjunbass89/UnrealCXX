@@ -14,10 +14,13 @@
     
     [![video](https://img.youtube.com/vi/uIgEoBMkAaE/0.jpg)](https://www.youtube.com/watch?v=uIgEoBMkAaE)
 
-* 스킬 : q, w, e 클릭으로 각각의 스킬이 실행되며. 직선형, 부채꼴형, 원형으로 80, 160, 240 의 데미지를 상대에게 준다. 스킬 사용 시에는 이동이나 기본 공격을 멈추고 마우스 커서 방향을 향해 공격한다. 다른 스킬 발동 중에는 스킬을 실행할 수 없다.
+* 스킬 : q, w, e 클릭으로 각각의 스킬이 실행되며. 직선형, 부채꼴형, 원형으로 80, 160, 240 의 데미지를 상대에게 준다. 스킬 사용 시에는 이동이나 기본 공격을 멈추고 마우스 커서 방향을 향해 공격한다. 다른 스킬 발동 중에는 스킬을 실행할 수 없다. 
 
     [![video](https://img.youtube.com/vi/cJDxkUufG_Y/0.jpg)](https://www.youtube.com/watch?v=cJDxkUufG_Y)
-
+    
+* 스킬마다 이펙트가 발생한다.
+    
+    [![video](https://img.youtube.com/vi/dADQVRcIz5s/0.jpg)](https://www.youtube.com/watch?v=dADQVRcIz5s)
     
 ## HP
 * 최대 HP는 200 으로 붉은색 HP 바가 플레이어 머리위에 뜬다. 
