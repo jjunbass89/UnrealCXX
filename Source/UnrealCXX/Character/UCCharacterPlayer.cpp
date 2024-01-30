@@ -19,6 +19,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "CharacterStat/UCCharacterStatComponent.h"
 #include "UI/UCWidgetComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 
 const float AUCCharacterPlayer::MaxTargetArmLength = 1200.0f;
 const float AUCCharacterPlayer::MinTargetArmLength = 220.0f;
@@ -151,6 +152,42 @@ AUCCharacterPlayer::AUCCharacterPlayer()
 	bIsZoomingIn = false;
 	bIsZoomingOut = false;
 	ZoomFactor = 0.0f;
+
+
+	QSkillEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("QSkillEffect"));
+	QSkillEffect->SetupAttachment(RootComponent);
+	//QSkillEffect->SetRelativeScale3D(FVector(2.0f, 2.0f, 2.0f));
+	QSkillEffect->SetRelativeLocation(FVector(300.0f, 0.0f, 0.0f));
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> QSkillEffectRef(TEXT("/Script/Engine.ParticleSystem'/Game/InfinityBladeEffects/Effects/FX_Ambient/Fire/P_Env_Fire_Grate_01.P_Env_Fire_Grate_01'"));
+	if (QSkillEffectRef.Object)
+	{
+		QSkillEffect->SetTemplate(QSkillEffectRef.Object);
+		QSkillEffect->bAutoActivate = false;
+	}
+
+	WSkillEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("WSkillEffect"));
+	WSkillEffect->SetupAttachment(RootComponent);
+	WSkillEffect->SetRelativeLocation(FVector(250.0f, 0.0f, 0.0f));
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> WSkillEffectRef(TEXT("/Script/Engine.ParticleSystem'/Game/InfinityBladeEffects/Effects/FX_Ambient/Fire/P_Lava_Splashes.P_Lava_Splashes'"));
+	if (WSkillEffectRef.Object)
+	{
+		WSkillEffect->SetTemplate(WSkillEffectRef.Object);
+		WSkillEffect->bAutoActivate = false;
+	}
+
+	ESkillEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ESkillEffect"));
+	ESkillEffect->SetupAttachment(RootComponent);
+	ESkillEffect->SetRelativeScale3D(FVector(2.0f, 2.0f, 2.0f));
+	ESkillEffect->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> ESkillEffectRef(TEXT("/Script/Engine.ParticleSystem'/Game/InfinityBladeEffects/Effects/FX_Skill_Whirlwind/P_Whirlwind_Default_Area_01.P_Whirlwind_Default_Area_01'"));
+	if (ESkillEffectRef.Object)
+	{
+		ESkillEffect->SetTemplate(ESkillEffectRef.Object);
+		ESkillEffect->bAutoActivate = false;
+	}
 }
 
 void AUCCharacterPlayer::BeginPlay()
@@ -261,6 +298,11 @@ void AUCCharacterPlayer::Tick(float DeltaTime)
 
 void AUCCharacterPlayer::InputRightMouseButtonPressed()
 {
+	if (bIsRunningQSkill || bIsRunningWSkill || bIsRunningESkill)
+	{
+		return;
+	}
+
 	bClickRightMouse = true;
 	bNewDestinationSet = false;
 
@@ -465,6 +507,9 @@ void AUCCharacterPlayer::InputQButtonPressed()
 	// Movement Setting
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
+	QSkillEffect->Activate(true);
+	QSkillEffect->SetVisibility(true);
+
 	// Animation Setting
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	AnimInstance->StopAllMontages(0.1f);
@@ -517,6 +562,9 @@ void AUCCharacterPlayer::InputEButtonPressed()
 	// Movement Setting
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
+	ESkillEffect->Activate(true);
+	ESkillEffect->SetVisibility(true);
+
 	// Animation Setting
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	AnimInstance->StopAllMontages(0.1f);
@@ -533,18 +581,24 @@ void AUCCharacterPlayer::InputEButtonPressed()
 
 void AUCCharacterPlayer::QSkillEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
+	QSkillEffect->SetVisibility(false);
+	QSkillEffect->Deactivate();
 	bIsRunningQSkill = false;
 }
 
 
 void AUCCharacterPlayer::WSkillEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
+	WSkillEffect->SetVisibility(false);
+	WSkillEffect->Deactivate();
 	bIsRunningWSkill = false;
 }
 
 
 void AUCCharacterPlayer::ESkillEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
+	ESkillEffect->SetVisibility(false);
+	ESkillEffect->Deactivate();
 	bIsRunningESkill = false;
 }
 
@@ -677,6 +731,9 @@ void AUCCharacterPlayer::AttackWSkillHitCheck()
 		FDamageEvent DamageEvent;
 		OutHitActor->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
 	}
+
+	WSkillEffect->Activate(true);
+	WSkillEffect->SetVisibility(true);
 }
 
 void AUCCharacterPlayer::AttackESkillHitCheck()

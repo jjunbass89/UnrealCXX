@@ -201,4 +201,15 @@ protected:
 	// Interaction Section
 protected:
 	void InputGButtonPressed();
+
+	// Effect Section
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Skill)
+	TObjectPtr<class UParticleSystemComponent> QSkillEffect;
+
+	UPROPERTY(VisibleAnywhere, Category = Skill)
+	TObjectPtr<class UParticleSystemComponent> WSkillEffect;
+
+	UPROPERTY(VisibleAnywhere, Category = Skill)
+	TObjectPtr<class UParticleSystemComponent> ESkillEffect;
 };
